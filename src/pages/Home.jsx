@@ -23,7 +23,7 @@ function Home() {
   const [popularSeries, setPopularSeries] = useState([]);
   const [upcomingMovies, setUpcomingMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [heroLoaded, setHeroLoaded] = useState(false);
   useEffect(() => {
     async function fetchMovies() {
       try {
@@ -52,9 +52,26 @@ function Home() {
     <>
       <div className="px-8 pb-12">
         {/* Hero */}
-        <section className="relative aspect-[2.3/1] min-h-[280px]xl overflow-hidden rounded-2xl bg-[#161D2D]">
+        <section className="relative aspect-[2.3/1] min-h-[280px] w-full overflow-hidden rounded-2xl bg-[#161D2D]">
+          {/* Skeleton, visible until the image finishes loading */}
           <div
-            className="absolute inset-0 bg-cover bg-right bg-no-repeat"
+            className={`absolute inset-0 animate-pulse bg-[#161D2D] transition-opacity duration-500 ${
+              heroLoaded ? "pointer-events-none opacity-0" : "opacity-100"
+            }`}
+          />
+
+          {/* Hidden image purely to detect the load event */}
+          <img
+            src={heroBg}
+            alt=""
+            onLoad={() => setHeroLoaded(true)}
+            className="hidden"
+          />
+
+          <div
+            className={`absolute inset-0 bg-cover bg-right bg-no-repeat transition-opacity duration-500 ${
+              heroLoaded ? "opacity-100" : "opacity-0"
+            }`}
             style={{ backgroundImage: `url(${heroBg})` }}
           />
 
@@ -91,7 +108,12 @@ function Home() {
         </section>
         {/* Trending, with the watchlist CTA card hanging over its bottom-right */}
         <div className="relative">
-          <MovieSection title="Trending This Week" movies={trendingMovies} autoScroll loading={loading} />
+          <MovieSection
+            title="Trending This Week"
+            movies={trendingMovies}
+            autoScroll
+            loading={loading}
+          />
 
           <WatchlistWaitingCard className="absolute -bottom-10 right-0 z-20 hidden lg:block" />
         </div>
@@ -113,7 +135,11 @@ function Home() {
           type="TV Series"
           loading={loading}
         />
-        <MovieSection title="Coming Soon" movies={upcomingMovies} loading={loading} />
+        <MovieSection
+          title="Coming Soon"
+          movies={upcomingMovies}
+          loading={loading}
+        />
       </div>
       <FeatureHighlights />
       <Footer />

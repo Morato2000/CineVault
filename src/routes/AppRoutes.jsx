@@ -11,7 +11,7 @@ import Help from "../pages/Help";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
-import ResetPasswordSent from "../pages/ResetLinkSent.jsx";
+import ResetLinkSent from "../pages/ResetLinkSent.jsx";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -29,7 +29,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ForgotPassword />} />
-      <Route path="/reset-password/sent" element={<ResetPasswordSent />} />
+     <Route path="/reset-password/sent" element={<ResetLinkSent />} />
     </Routes>
   );
 }

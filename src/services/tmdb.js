@@ -140,3 +140,44 @@ export async function getUpcomingMovies() {
     return dateA.localeCompare(dateB);
   });
 }
+export async function getTrendingAllToday() {
+  const response = await fetch(`${BASE_URL}/trending/all/day`, options);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch trending titles");
+  }
+
+  const data = await response.json();
+
+  return data.results;
+}
+
+export async function getTopRatedAll() {
+  const [moviesRes, tvRes] = await Promise.all([
+    fetch(`${BASE_URL}/movie/top_rated`, options),
+    fetch(`${BASE_URL}/tv/top_rated`, options),
+  ]);
+
+  if (!moviesRes.ok || !tvRes.ok) {
+    throw new Error("Failed to fetch top rated titles");
+  }
+
+  const [moviesData, tvData] = await Promise.all([
+    moviesRes.json(),
+    tvRes.json(),
+  ]);
+
+  const movies = moviesData.results.map((item) => ({
+    ...item,
+    media_type: "movie",
+  }));
+
+  const series = tvData.results.map((item) => ({
+    ...item,
+    media_type: "tv",
+  }));
+
+  return [...movies, ...series].sort(
+    (a, b) => b.vote_average - a.vote_average
+  );
+}

@@ -1,11 +1,20 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import MovieCard from "./MovieCard";
 import MovieCardSkeleton from "./MovieCardSkeleton";
+import { IoChevronForward } from "react-icons/io5";
 
 import arrowLeft from "../../assets/icons/arrow-left.svg";
 import arrowRight from "../../assets/icons/arrow-right.svg";
 
-function MovieSection({ title, movies, type, autoScroll = false, loading = false }) {
+function MovieSection({
+  title,
+  movies,
+  type,
+  icon: Icon,
+  iconClass = "text-white",
+  autoScroll = false,
+  loading = false,
+}) {
   const scrollRef = useRef(null);
   const rafRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -22,6 +31,10 @@ function MovieSection({ title, movies, type, autoScroll = false, loading = false
   }, []);
 
   useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
+
     updateScrollState();
 
     const el = scrollRef.current;
@@ -35,13 +48,7 @@ function MovieSection({ title, movies, type, autoScroll = false, loading = false
       window.removeEventListener("resize", updateScrollState);
     };
   }, [updateScrollState, movies]);
-  useEffect(() => {
-  if (scrollRef.current) {
-    scrollRef.current.scrollLeft = 0;
-  }
-}, [movies]);
 
-  // Auto-scroll loop
   useEffect(() => {
     if (!autoScrollActive || isPaused) return;
 
@@ -53,7 +60,7 @@ function MovieSection({ title, movies, type, autoScroll = false, loading = false
     const el = scrollRef.current;
     if (!el) return;
 
-    const speed = 0.6; // px per frame, ~roughly 36px/sec at 60fps
+    const speed = 0.6;
 
     const step = () => {
       if (!scrollRef.current) return;
@@ -77,7 +84,6 @@ function MovieSection({ title, movies, type, autoScroll = false, loading = false
   }, [autoScrollActive, isPaused]);
 
   const scroll = (direction) => {
-    // Manual interaction permanently stops auto-scroll
     setAutoScrollActive(false);
 
     if (!scrollRef.current) return;
@@ -94,13 +100,17 @@ function MovieSection({ title, movies, type, autoScroll = false, loading = false
     <section className="mt-8">
       {/* Section Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-white">
+          {Icon && <Icon className={`h-5 w-5 ${iconClass}`} />}
+          {title}
+          <IoChevronForward className="h-4 w-4 text-gray-400" />
+        </h2>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => scroll("left")}
-           disabled={!canScrollLeft || loading}
+            disabled={!canScrollLeft || loading}
             aria-label={`Scroll ${title} left`}
             className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
           >
@@ -121,24 +131,26 @@ function MovieSection({ title, movies, type, autoScroll = false, loading = false
             type="button"
             className="ml-2 text-sm font-medium text-purple-400 transition-colors hover:text-purple-300"
           >
-            Show All
+            View All →
           </button>
         </div>
       </div>
 
       {/* Movie Cards */}
-     <div
-  ref={scrollRef}
-  onMouseEnter={() => setIsPaused(true)}
-  onMouseLeave={() => setIsPaused(false)}
-  className="flex gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
->
-  {loading
-    ? Array.from({ length: 6 }).map((_, i) => <MovieCardSkeleton key={i} />)
-    : movies.map((movie) => (
-        <MovieCard key={movie.id} movie={movie} type={type} />
-      ))}
-</div>
+      <div
+        ref={scrollRef}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        className="flex gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <MovieCardSkeleton key={i} />
+            ))
+          : movies.map((movie) => (
+              <MovieCard key={movie.id} movie={movie} type={type} />
+            ))}
+      </div>
     </section>
   );
 }

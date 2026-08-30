@@ -38,11 +38,11 @@ function ResetLinkSent() {
 
             <div className="rounded-2xl bg-gradient-to-b from-[#A855F7] to-[#3B82F6] p-[1px] shadow-[0_18px_60px_rgba(0,0,0,0.25)]">
               <div className="rounded-[15px] bg-[#181F33] p-6 text-center">
-                <div className="mx-auto flex h-30 w-30 items-center justify-center rounded-2xl ">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl">
                   <img
                     src={SentMgImage}
                     alt="Sent Mail"
-                    className="h-30 w-30 object-contain"
+                    className="h-20 w-20 object-contain"
                   />
                 </div>
 

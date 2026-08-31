@@ -12,6 +12,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetLinkSent from "../pages/ResetLinkSent.jsx";
+import SearchResults from "../pages/SearchResults";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -23,6 +24,7 @@ export default function AppRoutes() {
         <Route path="/stats" element={<Stats />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/search" element={<SearchResults />} />
       </Route>
 
       {/* Authentication */}

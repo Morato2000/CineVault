@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import MovieCard from "./MovieCard";
 import MovieCardSkeleton from "./MovieCardSkeleton";
-import { IoChevronForward } from "react-icons/io5";
+import { IoChevronForward, IoAlertCircleOutline } from "react-icons/io5";
 
 import arrowLeft from "../../assets/icons/arrow-left.svg";
 import arrowRight from "../../assets/icons/arrow-right.svg";
@@ -14,6 +14,8 @@ function MovieSection({
   iconClass = "text-white",
   autoScroll = false,
   loading = false,
+  error = null,
+  emptyMessage = "No titles found.",
 }) {
   const scrollRef = useRef(null);
   const rafRef = useRef(null);
@@ -21,6 +23,9 @@ function MovieSection({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [autoScrollActive, setAutoScrollActive] = useState(autoScroll);
+
+  const hasContent = !loading && !error && movies.length > 0;
+  const isEmpty = !loading && !error && movies.length === 0;
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -50,7 +55,7 @@ function MovieSection({
   }, [updateScrollState, movies]);
 
   useEffect(() => {
-    if (!autoScrollActive || isPaused) return;
+    if (!autoScrollActive || isPaused || !hasContent) return;
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -81,7 +86,7 @@ function MovieSection({
     rafRef.current = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(rafRef.current);
-  }, [autoScrollActive, isPaused]);
+  }, [autoScrollActive, isPaused, hasContent]);
 
   const scroll = (direction) => {
     setAutoScrollActive(false);
@@ -103,54 +108,78 @@ function MovieSection({
         <h2 className="flex items-center gap-2 text-xl font-bold text-white">
           {Icon && <Icon className={`h-5 w-5 ${iconClass}`} />}
           {title}
-          <IoChevronForward className="h-4 w-4 text-gray-400" />
+          <IoChevronForward className="h-6 w-6 text-gray-400" />
         </h2>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => scroll("left")}
-            disabled={!canScrollLeft || loading}
-            aria-label={`Scroll ${title} left`}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
-          >
-            <img src={arrowLeft} alt="" className="h-4 w-4" />
-          </button>
+        {hasContent && (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => scroll("left")}
+              disabled={!canScrollLeft}
+              aria-label={`Scroll ${title} left`}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
+            >
+              <img src={arrowLeft} alt="" className="h-4 w-4" />
+            </button>
 
-          <button
-            type="button"
-            onClick={() => scroll("right")}
-            disabled={!canScrollRight || loading}
-            aria-label={`Scroll ${title} right`}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
-          >
-            <img src={arrowRight} alt="" className="h-4 w-4" />
-          </button>
+            <button
+              type="button"
+              onClick={() => scroll("right")}
+              disabled={!canScrollRight}
+              aria-label={`Scroll ${title} right`}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
+            >
+              <img src={arrowRight} alt="" className="h-4 w-4" />
+            </button>
 
-          <button
-            type="button"
-            className="ml-2 text-sm font-medium text-purple-400 transition-colors hover:text-purple-300"
-          >
-            View All →
-          </button>
-        </div>
+            <button
+              type="button"
+              className="ml-2 text-sm font-medium text-purple-400 transition-colors hover:text-purple-300"
+            >
+              View All →
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <MovieCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-4 text-sm text-red-300">
+          <IoAlertCircleOutline className="h-5 w-5 shrink-0" />
+          Couldn't load titles right now. Please try again later.
+        </div>
+      )}
+
+      {/* Empty */}
+      {isEmpty && (
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-gray-400">
+          {emptyMessage}
+        </div>
+      )}
 
       {/* Movie Cards */}
-      <div
-        ref={scrollRef}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        className="flex gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {loading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <MovieCardSkeleton key={i} />
-            ))
-          : movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} type={type} />
-            ))}
-      </div>
+      {hasContent && (
+        <div
+          ref={scrollRef}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          className="flex gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {movies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} type={type} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

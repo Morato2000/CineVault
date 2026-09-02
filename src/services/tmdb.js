@@ -325,3 +325,15 @@ export async function searchMulti(query, page = 1) {
     totalResults: data.total_results,
   };
 }
+export async function getTitleDetails(mediaType, id) {
+  const response = await fetch(
+    `${BASE_URL}/${mediaType}/${id}?append_to_response=credits,recommendations`,
+    options
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch title details");
+  }
+
+  return response.json();
+}

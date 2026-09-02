@@ -50,7 +50,6 @@ function sortResults(results, sortBy) {
   return list;
 }
 
-// Builds a windowed list of page numbers, e.g. [1, 2, 3, 4, 5] or [4, 5, 6, 7, 8]
 function getPageWindow(current, total, windowSize = 5) {
   let start = Math.max(1, current - Math.floor(windowSize / 2));
   let end = start + windowSize - 1;
@@ -68,7 +67,6 @@ function SearchResults() {
   const query = searchParams.get("q") || "";
   const page = Number(searchParams.get("page") || 1);
 
-  // Buffer of raw TMDB results accumulated across however many TMDB pages (20 each) we've fetched
   const [buffer, setBuffer] = useState([]);
   const [tmdbPage, setTmdbPage] = useState(0);
   const [tmdbTotalPages, setTmdbTotalPages] = useState(1);
@@ -80,15 +78,14 @@ function SearchResults() {
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
 
-  // Reset the buffer whenever the query changes
   useEffect(() => {
+    setLoading(true);
     setBuffer([]);
     setTmdbPage(0);
     setTmdbTotalPages(1);
     setTotalResults(0);
   }, [query]);
 
-  // Fetch more TMDB pages until the buffer covers the requested page
   useEffect(() => {
     if (!query.trim()) {
       setLoading(false);
@@ -144,12 +141,12 @@ function SearchResults() {
     };
   }, [query, page, buffer, tmdbPage, tmdbTotalPages]);
 
-  // Scroll to top whenever the page changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
   const goToPage = (nextPage) => {
+    setLoading(true);
     const next = new URLSearchParams(searchParams);
     next.set("page", nextPage);
     setSearchParams(next);
@@ -162,8 +159,6 @@ function SearchResults() {
 
   const pageItems = filteredAll.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // Best-effort page count: exact when no filter is active, an estimate that
-  // grows as more is fetched when a filter narrows the set.
   const ourTotalPages =
     activeFilter === "All"
       ? Math.max(1, Math.ceil(totalResults / PAGE_SIZE))
@@ -194,7 +189,7 @@ function SearchResults() {
             }}
             className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
               activeFilter === filter
-                ? "bg-gradient-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
                 : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
             }`}
           >
@@ -246,7 +241,7 @@ function SearchResults() {
             aria-pressed={viewMode === "grid"}
             className={`flex h-10 w-10 items-center justify-center rounded-xl ${
               viewMode === "grid"
-                ? "bg-gradient-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
                 : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
             }`}
           >
@@ -260,7 +255,7 @@ function SearchResults() {
             aria-pressed={viewMode === "list"}
             className={`flex h-10 w-10 items-center justify-center rounded-xl ${
               viewMode === "list"
-                ? "bg-gradient-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
                 : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
             }`}
           >
@@ -269,129 +264,154 @@ function SearchResults() {
         </div>
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
-          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <MovieCardSkeleton key={i} />
-          ))}
-        </div>
-      )}
+      <div className="flex min-h-[60vh] flex-col">
+        <div className="flex-1">
+          {!query.trim() ? (
+            <div className="mt-16 flex flex-col items-center text-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/5">
+                <IoSearch className="h-10 w-10 text-purple-400" />
+              </div>
+              <h2 className="mt-5 text-xl font-bold text-white">
+                Start typing to search
+              </h2>
+              <p className="mt-2 text-sm text-gray-400">
+                Use the search bar above to find movies, anime, and TV series.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Loading */}
+              {loading && (
+                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
+                  {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                    <MovieCardSkeleton key={i} size="sm" />
+                  ))}
+                </div>
+              )}
 
-      {/* Empty */}
-      {!loading && pageItems.length === 0 && (
-        <div className="mt-16 flex flex-col items-center text-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/5">
-            <IoSearch className="h-10 w-10 text-purple-400" />
-          </div>
-          <h2 className="mt-5 text-xl font-bold text-white">No Titles Found</h2>
-          <p className="mt-2 text-sm text-gray-400">
-            We could not find any results for:{" "}
-            <span className="text-purple-400">"{query}"</span>
-          </p>
-          <p className="mt-1 text-sm text-gray-400">
-            Check your spelling or try a broader search.
-          </p>
-        </div>
-      )}
-
-      {/* Grid view */}
-      {!loading && pageItems.length > 0 && viewMode === "grid" && (
-        <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
-          {pageItems.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} size="sm" />
-          ))}
-        </div>
-      )}
-
-      {/* List view */}
-      {!loading && pageItems.length > 0 && viewMode === "list" && (
-        <div className="mt-8 space-y-3">
-          {pageItems.map((item) => {
-            const title = item.title || item.name;
-            const date = item.release_date || item.first_air_date;
-            const year = date ? date.slice(0, 4) : "";
-            const poster = getTmdbImage(item.poster_path, "w154");
-
-            return (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 rounded-xl border border-white/10 bg-[#0B0F1A] p-3"
-              >
-                {poster ? (
-                  <img src={poster} alt="" className="h-20 w-14 shrink-0 rounded-lg object-cover" />
-                ) : (
-                  <div className="h-20 w-14 shrink-0 rounded-lg bg-white/10" />
-                )}
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-white">{title}</p>
-                  <p className="text-sm text-gray-400">
-                    {year} • {item.media_type === "tv" ? "TV Series" : "Movies"}
+              {/* Empty */}
+              {!loading && pageItems.length === 0 && (
+                <div className="mt-16 flex flex-col items-center text-center">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/5">
+                    <IoSearch className="h-10 w-10 text-purple-400" />
+                  </div>
+                  <h2 className="mt-5 text-xl font-bold text-white">
+                    No Titles Found
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-400">
+                    We could not find any results for:{" "}
+                    <span className="text-purple-400">"{query}"</span>
+                  </p>
+                  <p className="mt-1 text-sm text-gray-400">
+                    Check your spelling or try a broader search.
                   </p>
                 </div>
+              )}
 
-                <span className="flex items-center gap-1 text-sm text-amber-400">
-                  ★ {item.vote_average?.toFixed(1)}
-                </span>
-              </div>
-            );
-          })}
+              {/* Grid view */}
+              {!loading && pageItems.length > 0 && viewMode === "grid" && (
+                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
+                  {pageItems.map((movie) => (
+                    <MovieCard key={movie.id} movie={movie} size="sm" />
+                  ))}
+                </div>
+              )}
+
+              {/* List view */}
+              {!loading && pageItems.length > 0 && viewMode === "list" && (
+                <div className="mt-8 space-y-3">
+                  {pageItems.map((item) => {
+                    const title = item.title || item.name;
+                    const date = item.release_date || item.first_air_date;
+                    const year = date ? date.slice(0, 4) : "";
+                    const poster = getTmdbImage(item.poster_path, "w154");
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-4 rounded-xl border border-white/10 bg-[#0B0F1A] p-3"
+                      >
+                        {poster ? (
+                          <img
+                            src={poster}
+                            alt=""
+                            className="h-20 w-14 shrink-0 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="h-20 w-14 shrink-0 rounded-lg bg-white/10" />
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-white">
+                            {title}
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            {year} •{" "}
+                            {item.media_type === "tv" ? "TV Series" : "Movies"}
+                          </p>
+                        </div>
+
+                        <span className="flex items-center gap-1 text-sm text-amber-400">
+                          ★ {item.vote_average?.toFixed(1)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
 
-      {/* Pagination */}
-{!loading && pageItems.length > 0 && (
-  <div className="relative mt-8 flex items-center justify-between">
-    
-    {/* Results count */}
-    <p className="min-w-0 flex-1 text-left text-sm text-gray-400">
-      Showing {startIndex} to {endIndex} of{" "}
-      {activeFilter === "All" ? totalResults : filteredAll.length} items
-    </p>
+        {/* Pagination */}
+        {query.trim() && !loading && pageItems.length > 0 && (
+          <div className="relative mt-8 flex items-center justify-between">
+            <p className="min-w-0 flex-1 text-left text-sm text-gray-400">
+              Showing {startIndex} to {endIndex} of{" "}
+              {activeFilter === "All" ? totalResults : filteredAll.length} items
+            </p>
 
-    {/* Pagination */}
-    <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
-      <button
-        type="button"
-        onClick={() => goToPage(page - 1)}
-        disabled={page <= 1}
-        aria-label="Previous page"
-        className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#477DF7]/70 text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
-      >
-        <IoChevronBack className="h-4 w-4" />
-      </button>
+            <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                aria-label="Previous page"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#477DF7]/70 text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <IoChevronBack className="h-4 w-4" />
+              </button>
 
-      {pageWindow.map((num) => (
-        <button
-          key={num}
-          type="button"
-          onClick={() => goToPage(num)}
-          aria-current={num === page ? "page" : undefined}
-          className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold ${
-            num === page
-              ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-              : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
-          }`}
-        >
-          {num}
-        </button>
-      ))}
+              {pageWindow.map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => goToPage(num)}
+                  aria-current={num === page ? "page" : undefined}
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold ${
+                    num === page
+                      ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                      : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
 
-      <button
-        type="button"
-        onClick={() => goToPage(page + 1)}
-        disabled={page >= ourTotalPages}
-        aria-label="Next page"
-        className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#477DF7]/70 text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
-      >
-        <IoChevronForward className="h-4 w-4" />
-      </button>
+              <button
+                type="button"
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= ourTotalPages}
+                aria-label="Next page"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#477DF7]/70 text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <IoChevronForward className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-)}
-    </div>
-    
   );
 }
 

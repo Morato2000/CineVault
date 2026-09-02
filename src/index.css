@@ -11,3 +11,39 @@ body {
   background: #080d17;
   color: white;
 }
+
+/* Themed scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #A855F7 #0B0F1A;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #0B0F1A;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #A855F7, #3B82F6);
+  border-radius: 999px;
+  border: 2px solid #0B0F1A;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9333EA, #2563EB);
+}
+
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

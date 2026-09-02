@@ -1,26 +1,59 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FiSearch, FiBell, FiX } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { searchMulti } from "../../services/tmdb";
 import { getTmdbImage } from "../../utils/tmdbImage";
 
+function highlightMatch(text, query) {
+  if (!query.trim()) return text;
+
+  const index = text.toLowerCase().indexOf(query.trim().toLowerCase());
+  if (index === -1) return text;
+
+  const before = text.slice(0, index);
+  const match = text.slice(index, index + query.trim().length);
+  const after = text.slice(index + query.trim().length);
+
+  return (
+    <>
+      {before}
+      <span className="text-purple-400">{match}</span>
+      {after}
+    </>
+  );
+}
+
 function TopNav() {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
+  const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
 
   const debouncedQuery = useDebouncedValue(query, 400);
 
   useEffect(() => {
+    setQuery("");
+    setResults([]);
+    setTotalResults(0);
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+
     if (debouncedQuery.trim().length < 2) {
       setResults([]);
+      setTotalResults(0);
       return;
     }
 
@@ -29,10 +62,16 @@ function TopNav() {
 
     searchMulti(debouncedQuery)
       .then((data) => {
-        if (!cancelled) setResults(data.results.slice(0, 4));
+        if (!cancelled) {
+          setResults(data.results.slice(0, 4));
+          setTotalResults(data.totalResults);
+        }
       })
       .catch(() => {
-        if (!cancelled) setResults([]);
+        if (!cancelled) {
+          setResults([]);
+          setTotalResults(0);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -60,14 +99,39 @@ function TopNav() {
     setIsOpen(false);
   };
 
+  const goToResult = (item) => {
+    setIsOpen(false);
+    navigate(`/${item.media_type}/${item.id}`);
+  };
+
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") goToFullResults();
-    if (e.key === "Escape") setIsOpen(false);
+    if (!isOpen || results.length === 0) {
+      if (e.key === "Enter") goToFullResults();
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % results.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && results[activeIndex]) {
+        goToResult(results[activeIndex]);
+      } else {
+        goToFullResults();
+      }
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+      inputRef.current?.blur();
+    }
   };
 
   const clearSearch = () => {
     setQuery("");
     setResults([]);
+    setTotalResults(0);
   };
 
   return (
@@ -79,6 +143,7 @@ function TopNav() {
             <FiSearch className="mr-3 h-5 w-5 text-gray-400" />
 
             <input
+              ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => {
@@ -94,7 +159,7 @@ function TopNav() {
             {query && (
               <>
                 <span className="mr-3 whitespace-nowrap text-sm text-gray-500">
-                  {loading ? "..." : `${results.length} Results`}
+                  {loading ? "..." : `${totalResults} Results`}
                 </span>
                 <button
                   type="button"
@@ -110,14 +175,17 @@ function TopNav() {
 
           {/* Dropdown */}
           {isOpen && query.trim().length >= 2 && (
-            <div className="absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+            <div
+              role="listbox"
+              className="absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40"
+            >
               {results.length === 0 && !loading && (
                 <p className="px-3 py-4 text-center text-sm text-gray-400">
                   No results for "{query}"
                 </p>
               )}
 
-              {results.map((item) => {
+              {results.map((item, index) => {
                 const title = item.title || item.name;
                 const date = item.release_date || item.first_air_date;
                 const year = date ? date.slice(0, 4) : "";
@@ -127,12 +195,13 @@ function TopNav() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => {
-                      setIsOpen(false);
-                      // navigate to details page once it exists, e.g.:
-                      // navigate(`/${item.media_type}/${item.id}`);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
+                    role="option"
+                    aria-selected={index === activeIndex}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onClick={() => goToResult(item)}
+                    className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left ${
+                      index === activeIndex ? "bg-white/10" : "hover:bg-white/5"
+                    }`}
                   >
                     {poster ? (
                       <img
@@ -145,8 +214,8 @@ function TopNav() {
                     )}
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {title}
+                      <p className="truncate text-md font-semibold text-white">
+                        {highlightMatch(title, query)}
                       </p>
                       <p className="text-xs text-gray-400">
                         {year} •{" "}
@@ -154,7 +223,7 @@ function TopNav() {
                       </p>
                     </div>
 
-                    <span className="flex items-center gap-1 text-xs text-amber-400">
+                    <span className="flex items-center gap-1 text-md text-amber-400">
                       ★ {item.vote_average?.toFixed(1)}
                     </span>
                   </button>
@@ -165,7 +234,7 @@ function TopNav() {
                 <button
                   type="button"
                   onClick={goToFullResults}
-                  className="mt-2 w-full rounded-xl border-t border-white/10 pt-3 text-center text-sm font-medium text-purple-400 hover:text-purple-300"
+                  className="mt-2 w-full rounded-xl border-t border-white/10 pt-3 text-center text-md font-medium text-purple-400 hover:text-purple-300"
                 >
                   View all results →
                 </button>
@@ -190,11 +259,11 @@ function TopNav() {
           </div>
         ) : (
           <div className="flex items-center gap-5">
-            <button className="rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] px-7 py-3 font-semibold text-white">
+            <button className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-7 py-3 font-semibold text-white">
               Sign Up
             </button>
 
-            <button className="rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] p-[1px]">
+            <button className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-[1px]">
               <span className="block rounded-full bg-[#080D17] px-7 py-3 font-semibold text-white">
                 Login
               </span>

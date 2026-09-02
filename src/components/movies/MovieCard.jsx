@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { getTmdbImage } from "../../utils/tmdbImage";
 import tmdbStar from "../../assets/icons/tmdb-star.svg";
+import PosterFallback from "../common/PosterFallback";
 
 const SIZES = {
   md: {
@@ -37,6 +39,7 @@ function MovieCard({ movie, type, size = "md" }) {
 
   const title = movie.title || movie.name;
   const mediaType = type || (movie.media_type === "tv" ? "TV Series" : "Movie");
+  const linkMediaType = movie.media_type || (type === "TV Series" ? "tv" : "movie");
   const rating = movie.vote_average?.toFixed(1);
 
   const startYear = (movie.release_date || movie.first_air_date || "").slice(0, 4);
@@ -58,14 +61,19 @@ function MovieCard({ movie, type, size = "md" }) {
   const poster = getTmdbImage(movie.poster_path);
 
   return (
-    <div
-      className={`group relative ${s.card} shrink-0 overflow-hidden ${s.radius} bg-[#111827]`}
+    <Link
+      to={`/${linkMediaType}/${movie.id}`}
+      className={`group relative block ${s.card} shrink-0 overflow-hidden ${s.radius} bg-[#111827]`}
     >
-      <img
-        src={poster}
-        alt={title}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-      />
+      {poster ? (
+        <img
+          src={poster}
+          alt={title}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      ) : (
+        <PosterFallback title={title} className="absolute inset-0" />
+      )}
 
       <div className="absolute inset-0 bg-black/10" />
       <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black via-black/75 to-transparent" />
@@ -77,6 +85,10 @@ function MovieCard({ movie, type, size = "md" }) {
 
       <button
         type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         aria-label={`More options for ${title}`}
         className={`absolute right-3 top-3 flex ${s.menuBtn} items-center justify-center leading-none text-white transition-opacity duration-200 hover:opacity-70`}
       >
@@ -111,7 +123,7 @@ function MovieCard({ movie, type, size = "md" }) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

@@ -1,5 +1,6 @@
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
+import { WatchlistProvider } from "./context/WatchlistContext";
 
 function App() {
   if ("scrollRestoration" in window.history) {
@@ -7,7 +8,9 @@ function App() {
   }
   return (
     <AuthProvider>
-      <AppRoutes />
+      <WatchlistProvider>
+        <AppRoutes />
+      </WatchlistProvider>
     </AuthProvider>
   );
 }

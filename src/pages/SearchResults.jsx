@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   IoSearch,
   IoGrid,
@@ -12,6 +12,7 @@ import MovieCard from "../components/movies/MovieCard";
 import MovieCardSkeleton from "../components/movies/MovieCardSkeleton";
 import { getTmdbImage } from "../utils/tmdbImage";
 import { searchMulti } from "../services/tmdb";
+import noResultsImage from "../assets/images/no-results.png";
 
 const FILTERS = ["All", "Anime", "Movies", "TV Series"];
 const SORT_OPTIONS = ["Relevance", "Newest", "Highest Rated", "A-Z"];
@@ -45,7 +46,9 @@ function sortResults(results, sortBy) {
     return list.sort((a, b) => b.vote_average - a.vote_average);
   }
   if (sortBy === "A-Z") {
-    return list.sort((a, b) => (a.title || a.name).localeCompare(b.title || b.name));
+    return list.sort((a, b) =>
+      (a.title || a.name).localeCompare(b.title || b.name),
+    );
   }
   return list;
 }
@@ -154,7 +157,7 @@ function SearchResults() {
 
   const filteredAll = sortResults(
     buffer.filter((item) => matchesFilter(item, activeFilter)),
-    sortBy
+    sortBy,
   );
 
   const pageItems = filteredAll.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -209,7 +212,10 @@ function SearchResults() {
 
           {sortMenuOpen && (
             <>
-              <div className="fixed inset-0 z-10" onClick={() => setSortMenuOpen(false)} />
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setSortMenuOpen(false)}
+              />
               <div className="absolute right-0 z-20 mt-2 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                 {SORT_OPTIONS.map((option) => (
                   <button
@@ -291,23 +297,30 @@ function SearchResults() {
 
               {/* Empty */}
               {!loading && pageItems.length === 0 && (
-                <div className="mt-16 flex flex-col items-center text-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/5">
-                    <IoSearch className="h-10 w-10 text-purple-400" />
+                <div className="mt-14 flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:justify-center">
+                  <img src={noResultsImage} alt="" className="h-40 w-auto" />
+
+                  <div className="text-center sm:text-left">
+                    <h2 className="text-xl font-bold text-white">
+                      No Titles Found
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-400">
+                      We could not find any results for:{" "}
+                      <span className="text-purple-400">"{query}"</span>
+                    </p>
+                    <p className="mt-1 text-sm text-gray-400">
+                      Check your spelling or try a broader search.
+                    </p>
+
+                    <Link
+                      to="/explore"
+                      className="mt-4 inline-flex items-center gap-2 rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-6 py-2.5 text-sm font-semibold text-white"
+                    >
+                      ↺ Back to Explore
+                    </Link>
                   </div>
-                  <h2 className="mt-5 text-xl font-bold text-white">
-                    No Titles Found
-                  </h2>
-                  <p className="mt-2 text-sm text-gray-400">
-                    We could not find any results for:{" "}
-                    <span className="text-purple-400">"{query}"</span>
-                  </p>
-                  <p className="mt-1 text-sm text-gray-400">
-                    Check your spelling or try a broader search.
-                  </p>
                 </div>
               )}
-
               {/* Grid view */}
               {!loading && pageItems.length > 0 && viewMode === "grid" && (
                 <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">

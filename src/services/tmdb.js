@@ -18,7 +18,12 @@ export async function getTrendingMovies() {
 
   const data = await response.json();
 
-  return data.results;
+  const movies = data.results.filter((item) => item.media_type !== "tv");
+  const series = await addTvDetails(
+    data.results.filter((item) => item.media_type === "tv")
+  );
+
+  return [...movies, ...series];
 }
 
 export async function getTvDetails(id) {
@@ -31,6 +36,25 @@ export async function getTvDetails(id) {
   return response.json();
 }
 
+export async function addTvDetails(results) {
+  return Promise.all(
+    results.map(async (series) => {
+      try {
+        const details = await getTvDetails(series.id);
+        return {
+          ...series,
+          first_air_date: details.first_air_date,
+          status: details.status,
+          last_air_date: details.last_air_date,
+        };
+      } catch (error) {
+        console.error(`Failed to fetch details for ${series.name}:`, error);
+        return series;
+      }
+    }),
+  );
+}
+
 export async function getTopRatedSeries() {
   const response = await fetch(`${BASE_URL}/tv/top_rated`, options);
 
@@ -40,24 +64,7 @@ export async function getTopRatedSeries() {
 
   const data = await response.json();
 
-  const seriesWithDetails = await Promise.all(
-    data.results.map(async (series) => {
-      try {
-        const details = await getTvDetails(series.id);
-
-        return {
-          ...series,
-          first_air_date: details.first_air_date,
-          status: details.status,
-          last_air_date: details.last_air_date,
-        };
-      } catch (error) {
-        console.error(`Failed to fetch details for ${series.name}:`, error);
-
-        return series;
-      }
-    })
-  );
+  const seriesWithDetails = await addTvDetails(data.results);
 
   return seriesWithDetails;
 }
@@ -95,7 +102,7 @@ export async function getPopularSeries() {
 
   const data = await response.json();
 
-  return data.results;
+  return addTvDetails(data.results);
 }
 
 export async function getUpcomingMovies() {
@@ -104,11 +111,11 @@ export async function getUpcomingMovies() {
   const [moviesRes, tvRes] = await Promise.all([
     fetch(
       `${BASE_URL}/discover/movie?region=US&sort_by=primary_release_date.asc&primary_release_date.gte=${today}&with_release_type=2|3&vote_count.gte=1`,
-      options
+      options,
     ),
     fetch(
       `${BASE_URL}/discover/tv?sort_by=first_air_date.asc&first_air_date.gte=${today}`,
-      options
+      options,
     ),
   ]);
 
@@ -131,7 +138,9 @@ export async function getUpcomingMovies() {
     media_type: "tv",
   }));
 
-  return [...movies, ...series].sort((a, b) => {
+  const seriesWithDetails = await addTvDetails(series);
+
+  return [...movies, ...seriesWithDetails].sort((a, b) => {
     const dateA = a.release_date || a.first_air_date;
     const dateB = b.release_date || b.first_air_date;
     return dateA.localeCompare(dateB);
@@ -147,7 +156,12 @@ export async function getTrendingAllToday() {
 
   const data = await response.json();
 
-  return data.results;
+  const movies = data.results.filter((item) => item.media_type !== "tv");
+  const series = await addTvDetails(
+    data.results.filter((item) => item.media_type === "tv")
+  );
+
+  return [...movies, ...series];
 }
 
 export async function getTopRatedAll() {
@@ -175,8 +189,10 @@ export async function getTopRatedAll() {
     media_type: "tv",
   }));
 
-  return [...movies, ...series].sort(
-    (a, b) => b.vote_average - a.vote_average
+  const seriesWithDetails = await addTvDetails(series);
+
+  return [...movies, ...seriesWithDetails].sort(
+    (a, b) => b.vote_average - a.vote_average,
   );
 }
 
@@ -205,7 +221,9 @@ export async function getNewReleases() {
     media_type: "tv",
   }));
 
-  return [...movies, ...series].sort((a, b) => {
+  const seriesWithDetails = await addTvDetails(series);
+
+  return [...movies, ...seriesWithDetails].sort((a, b) => {
     const dateA = a.release_date || a.first_air_date || "";
     const dateB = b.release_date || b.first_air_date || "";
     return dateB.localeCompare(dateA);
@@ -216,11 +234,11 @@ export async function getByGenre(movieGenreId, tvGenreId) {
   const [moviesRes, tvRes] = await Promise.all([
     fetch(
       `${BASE_URL}/discover/movie?with_genres=${movieGenreId}&sort_by=popularity.desc`,
-      options
+      options,
     ),
     fetch(
       `${BASE_URL}/discover/tv?with_genres=${tvGenreId}&sort_by=popularity.desc`,
-      options
+      options,
     ),
   ]);
 
@@ -243,18 +261,22 @@ export async function getByGenre(movieGenreId, tvGenreId) {
     media_type: "tv",
   }));
 
-  return [...movies, ...series].sort((a, b) => b.popularity - a.popularity);
+  const seriesWithDetails = await addTvDetails(series);
+
+  return [...movies, ...seriesWithDetails].sort(
+    (a, b) => b.popularity - a.popularity,
+  );
 }
 
 export async function getAnime() {
   const [moviesRes, tvRes] = await Promise.all([
     fetch(
       `${BASE_URL}/discover/movie?with_genres=16&with_original_language=ja&sort_by=popularity.desc`,
-      options
+      options,
     ),
     fetch(
       `${BASE_URL}/discover/tv?with_genres=16&with_original_language=ja&sort_by=popularity.desc`,
-      options
+      options,
     ),
   ]);
 
@@ -277,13 +299,17 @@ export async function getAnime() {
     media_type: "tv",
   }));
 
-  return [...movies, ...series].sort((a, b) => b.popularity - a.popularity);
+  const seriesWithDetails = await addTvDetails(series);
+
+  return [...movies, ...seriesWithDetails].sort(
+    (a, b) => b.popularity - a.popularity,
+  );
 }
 
 export async function getKDrama() {
   const response = await fetch(
     `${BASE_URL}/discover/tv?with_origin_country=KR&sort_by=popularity.desc`,
-    options
+    options,
   );
 
   if (!response.ok) {
@@ -292,7 +318,9 @@ export async function getKDrama() {
 
   const data = await response.json();
 
-  return data.results.map((item) => ({ ...item, media_type: "tv" }));
+  const series = data.results.map((item) => ({ ...item, media_type: "tv" }));
+
+  return addTvDetails(series);
 }
 
 export const GENRES = [
@@ -308,7 +336,7 @@ export const GENRES = [
 export async function searchMulti(query, page = 1) {
   const response = await fetch(
     `${BASE_URL}/search/multi?query=${encodeURIComponent(query)}&include_adult=false&page=${page}`,
-    options
+    options,
   );
 
   if (!response.ok) {
@@ -317,17 +345,30 @@ export async function searchMulti(query, page = 1) {
 
   const data = await response.json();
 
+  const results = data.results.filter(
+    (item) => item.media_type === "movie" || item.media_type === "tv",
+  );
+  const tvResults = await addTvDetails(
+    results.filter((item) => item.media_type === "tv"),
+  );
+  const tvById = new Map(tvResults.map((item) => [item.id, item]));
+
   return {
-    results: data.results.filter(
-      (item) => item.media_type === "movie" || item.media_type === "tv"
-    ),
+    results: results.map((item) => tvById.get(item.id) || item),
     totalPages: data.total_pages,
     totalResults: data.total_results,
   };
 }
+
+//Trailers
 export async function getTitleDetails(mediaType, id) {
+  const appends =
+    mediaType === "tv"
+      ? "aggregate_credits,recommendations,videos"
+      : "credits,recommendations,videos";
+
   const response = await fetch(
-    `${BASE_URL}/${mediaType}/${id}?append_to_response=credits,recommendations`,
+    `${BASE_URL}/${mediaType}/${id}?append_to_response=${appends}`,
     options
   );
 

@@ -14,6 +14,8 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetLinkSent from "../pages/ResetLinkSent.jsx";
 import SearchResults from "../pages/SearchResults";
 import Details from "../pages/Details";
+import Cast from "../pages/Cast";
+import FullInfo from "../pages/FullInfo";
 
 export default function AppRoutes() {
   return (
@@ -30,6 +32,8 @@ export default function AppRoutes() {
           <Route path="/help" element={<Help />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/:mediaType/:id" element={<Details />} />
+          <Route path="/:mediaType/:id/cast" element={<Cast />} />
+          <Route path="/:mediaType/:id/info" element={<FullInfo />} />
         </Route>
 
         {/* Authentication */}

@@ -1,7 +1,9 @@
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
 import { WatchlistProvider } from "./context/WatchlistContext";
-import { FavoritesProvider } from "./context/FavoritesContext"
+import { FavoritesProvider } from "./context/FavoritesContext";
+import { ProfileProvider } from "./context/ProfileContext";
+import { PreferencesProvider } from "./context/PreferencesContext";
 
 function App() {
   if ("scrollRestoration" in window.history) {
@@ -9,11 +11,15 @@ function App() {
   }
   return (
     <AuthProvider>
-      <WatchlistProvider>
-        <FavoritesProvider>
-        <AppRoutes />
-        </FavoritesProvider>
-      </WatchlistProvider>
+      <ProfileProvider>
+        <PreferencesProvider>
+          <WatchlistProvider>
+            <FavoritesProvider>
+              <AppRoutes />
+            </FavoritesProvider>
+          </WatchlistProvider>
+        </PreferencesProvider>
+      </ProfileProvider>
     </AuthProvider>
   );
 }

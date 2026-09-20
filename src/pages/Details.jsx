@@ -24,6 +24,7 @@ import {
   IoCopyOutline,
   IoOpenOutline,
 } from "react-icons/io5";
+import RatingHearts from "../components/common/RatingHearts";
 import { FaXTwitter, FaWhatsapp, FaFacebook } from "react-icons/fa6";
 import MovieSection from "../components/movies/MovieSection";
 import PosterFallback from "../components/common/PosterFallback";
@@ -72,8 +73,10 @@ function Details() {
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [trailerOpen, setTrailerOpen] = useState(false);
-  const [toast, setToast] = useState(false);
-  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingMenuOpen, setRatingMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (message) => setToastMessage(message);
 
   useEffect(() => {
     let cancelled = false;
@@ -213,9 +216,31 @@ function Details() {
 
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
-    setToast(true);
+    showToast("Link copied to clipboard!");
+  };
+const handleFavoriteClick = () => {
+  if (myRating > 0) {
+    setRating(item, 0);
+    showToast("Rating removed");
+    return;
+  }
+  if (!inWatchlist) {
+    showToast("Add to your watchlist first to rate this title.");
+    return;
+  }
+  setRatingMenuOpen((v) => !v);
+};
+  const handleWatchlistClick = () => {
+    const wasInWatchlist = inWatchlist;
+    toggleWatchlist(item);
+    showToast(wasInWatchlist ? "Removed from Watchlist" : "Added to Watchlist");
   };
 
+  const handleRate = (n) => {
+    setRating(item, n);
+    setRatingMenuOpen(false);
+    showToast(n > 0 ? `Rated ${n}/10` : "Rating removed");
+  };
   const handleNativeShare = () => {
     if (navigator.share) {
       navigator.share({ title, url: shareUrl }).catch(() => {});
@@ -242,151 +267,176 @@ function Details() {
 
           <div className="absolute inset-0 bg-linear-to-t from-[#080D17]/60 via-[#080D17]/40 to-black/30" />
 
-         <BackButton className="absolute left-6 top-6" />
+          <BackButton className="absolute left-6 top-6" />
 
           {/* Top-right icon + label actions */}
-          <div className="absolute right-6 top-6 flex items-start gap-6">
-            <button
-              type="button"
-              onClick={() => toggleFavorite(item)}
-              className="flex flex-col items-center gap-1.5 text-xs font-medium text-white"
-            >
-              <span
-                className={`flex h-11 w-11 items-center justify-center rounded-full border ${
-                  favorited ? "border-red-500/60" : "border-white/30"
-                }`}
-              >
-                {favorited ? (
-                  <IoHeart className="h-5 w-5 text-red-500" />
-                ) : (
-                  <IoHeartOutline className="h-5 w-5" />
+          <div className="absolute right-6 top-6">
+            <div className="flex items-start gap-6">
+              {/* Favorite + Rating */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleFavoriteClick}
+                  className="flex flex-col items-center gap-1.5 text-xs font-medium text-white"
+                >
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-full border ${
+                      myRating > 0 ? "border-red-500/60" : "border-white/30"
+                    }`}
+                  >
+                    {myRating > 0 ? (
+                      <IoHeart className="h-5 w-5 text-red-500" />
+                    ) : (
+                      <IoHeartOutline className="h-5 w-5" />
+                    )}
+                  </span>
+
+                  {myRating > 0 ? `Rated ${myRating}/10` : "Favorite"}
+                </button>
+
+                {/* Your heart bar popup */}
+                {ratingMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setRatingMenuOpen(false)}
+                    />
+
+                    <div className="absolute right-0 top-14 z-20 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A]/60 px-4 py-3 shadow-xl shadow-black/40">
+                      <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Your Rating
+                      </p>
+
+                      <RatingHearts rating={myRating} onRate={handleRate} />
+                    </div>
+                  </>
                 )}
-              </span>
+              </div>
 
-              {favorited ? "Favorited" : "Favorite"}
-            </button>
+              {/* Share */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className="flex flex-col items-center gap-1.5 text-xs font-medium text-white"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30">
+                    <IoShareSocialOutline className="h-5 w-5" />
+                  </span>
+                  Share
+                </button>
 
-            <div className="relative">
-              <button
-                type="button"
-                onClick={handleNativeShare}
-                className="flex flex-col items-center gap-1.5 text-xs font-medium text-white"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30">
-                  <IoShareSocialOutline className="h-5 w-5" />
-                </span>
-                Share
-              </button>
+                {shareMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShareMenuOpen(false)}
+                    />
 
-              {shareMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShareMenuOpen(false)}
-                  />
+                    <div className="absolute right-0 top-14 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                          title,
+                        )}&url=${encodeURIComponent(shareUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <FaXTwitter className="h-4 w-4" />
+                        Share on X
+                      </a>
 
-                  <div className="absolute right-0 top-14 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
-                    <a
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                        title,
-                      )}&url=${encodeURIComponent(shareUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                    >
-                      <FaXTwitter className="h-4 w-4" />
-                      Share on X
-                    </a>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `${title} ${shareUrl}`,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <FaWhatsapp className="h-4 w-4" />
+                        Share on WhatsApp
+                      </a>
 
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `${title} ${shareUrl}`,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                    >
-                      <FaWhatsapp className="h-4 w-4" />
-                      Share on WhatsApp
-                    </a>
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                          shareUrl,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <FaFacebook className="h-4 w-4" />
+                        Share on Facebook
+                      </a>
 
-                    <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                        shareUrl,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                    >
-                      <FaFacebook className="h-4 w-4" />
-                      Share on Facebook
-                    </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCopyLink(shareUrl);
+                          setShareMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <IoCopyOutline className="h-4 w-4" />
+                        Copy Link
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleCopyLink(shareUrl);
-                        setShareMenuOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                    >
-                      <IoCopyOutline className="h-4 w-4" />
-                      Copy Link
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+              {/* More */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMoreMenuOpen((v) => !v)}
+                  className="flex flex-col items-center gap-1.5 text-xs font-medium text-white"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30">
+                    <IoEllipsisHorizontal className="h-5 w-5" />
+                  </span>
+                  More
+                </button>
 
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMoreMenuOpen((v) => !v)}
-                className="flex flex-col items-center gap-1.5 text-xs font-medium text-white"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30">
-                  <IoEllipsisHorizontal className="h-5 w-5" />
-                </span>
-                More
-              </button>
+                {moreMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setMoreMenuOpen(false)}
+                    />
 
-              {moreMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setMoreMenuOpen(false)}
-                  />
+                    <div className="absolute right-0 top-14 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCopyLink(shareUrl);
+                          setMoreMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <IoCopyOutline className="h-4 w-4" />
+                        Copy Link
+                      </button>
 
-                  <div className="absolute right-0 top-14 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleCopyLink(shareUrl);
-                        setMoreMenuOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                    >
-                      <IoCopyOutline className="h-4 w-4" />
-                      Copy Link
-                    </button>
-
-                    <a
-                      href={tmdbUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                    >
-                      <IoOpenOutline className="h-4 w-4" />
-                      View on TMDB
-                    </a>
-                  </div>
-                </>
-              )}
+                      <a
+                        href={tmdbUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <IoOpenOutline className="h-4 w-4" />
+                        View on TMDB
+                      </a>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Title + genres + stats + action buttons */}
-          <div className="absolute inset-x-6 bottom-6 flex items-end justify-between gap-6 pl-42">
+          <div className="absolute inset-x-6 bottom-6 flex items-end justify-between gap-6 pl-0 sm:pl-42">
             <div>
               <h1 className="text-2xl font-bold text-white sm:text-3xl">
                 {title}
@@ -421,35 +471,6 @@ function Details() {
               </div>
 
               {/* Personal rating */}
-              <div className="mt-3 flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((n) => {
-                  const filled = (hoverRating || myRating) >= n;
-
-                  return (
-                    <button
-                      key={n}
-                      type="button"
-                      onMouseEnter={() => setHoverRating(n)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(item, myRating === n ? 0 : n)}
-                      aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
-                      className="text-amber-400"
-                    >
-                      {filled ? (
-                        <IoStar className="h-5 w-5" />
-                      ) : (
-                        <IoStarOutline className="h-5 w-5" />
-                      )}
-                    </button>
-                  );
-                })}
-
-                {myRating > 0 && (
-                  <span className="ml-1 text-xs font-medium text-gray-300">
-                    Your rating: {myRating}/5
-                  </span>
-                )}
-              </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 {rating && (
@@ -480,35 +501,23 @@ function Details() {
             </div>
 
             <div className="flex shrink-0 flex-col items-end gap-2">
-              <div className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-px">
-  <button
-    type="button"
-    onClick={() => toggleWatchlist(item)}
-    className={`rounded-full px-5 py-2.5 text-sm font-semibold  text-white transition ${
-      inWatchlist
-        ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] "
-        : "bg-[#111827] hover:bg-[#111827]/40"
-    }`}
-  >
-    {inWatchlist ? (
-      <span className="flex items-center gap-2">
-        <IoCheckmark className="h-4 w-4" />
-        In Watch List
-      </span>
-    ) : (
-      <span className="flex items-center gap-2">
-        <IoAddOutline className="h-4 w-4" />
-        Add to Watch List
-      </span>
-    )}
-  </button>
-</div>
+              <button
+                type="button"
+                onClick={handleWatchlistClick}
+                className={`rounded-full border px-5 py-2.5 text-sm font-semibold text-white transition ${
+                  inWatchlist
+                    ? "border-transparent bg-linear-to-b from-[#A855F7] to-[#3B82F6]"
+                    : "border-[#A855F7] bg-transparent hover:bg-[#A855F7]/10"
+                }`}
+              >
+                {inWatchlist ? "In Watchlist" : "+ Add to Watchlist"}
+              </button>
 
               <button
                 type="button"
                 onClick={() => trailer && setTrailerOpen(true)}
                 disabled={!trailer}
-                className="flex items-center gap-2 rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-2 rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6]/50 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <IoPlay className="h-4 w-4" />
                 Watch Trailer
@@ -737,9 +746,9 @@ function Details() {
       )}
 
       <Toast
-        message="Link copied to clipboard!"
-        show={toast}
-        onClose={() => setToast(false)}
+        message={toastMessage}
+        show={!!toastMessage}
+        onClose={() => setToastMessage(null)}
       />
     </div>
   );

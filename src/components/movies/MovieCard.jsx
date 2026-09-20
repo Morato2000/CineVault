@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { getTmdbImage } from "../../utils/tmdbImage";
 import tmdbStar from "../../assets/icons/tmdb-star.svg";
 import PosterFallback from "../common/PosterFallback";
+import { IoHeart } from "react-icons/io5";
+import { useFavorites } from "../../context/FavoritesContext";
 
 const SIZES = {
   md: {
@@ -14,8 +16,7 @@ const SIZES = {
     date: "text-base",
     pill: "px-4 py-2 text-sm",
     ratingText: "text-lg",
-    heart: "text-lg",
-    heartLabel: "text-sm",
+    barsSize: "md",
     menuBtn: "h-8 w-8 text-2xl",
   },
   sm: {
@@ -28,21 +29,26 @@ const SIZES = {
     date: "text-xs",
     pill: "px-2.5 py-1 text-xs",
     ratingText: "text-sm",
-    heart: "text-sm",
-    heartLabel: "text-xs",
+    barsSize: "sm",
     menuBtn: "h-6 w-6 text-lg",
   },
 };
 
 function MovieCard({ movie, type, size = "md" }) {
   const s = SIZES[size];
+  const { getRating } = useFavorites();
 
   const title = movie.title || movie.name;
   const mediaType = type || (movie.media_type === "tv" ? "TV Series" : "Movie");
-  const linkMediaType = movie.media_type || (type === "TV Series" ? "tv" : "movie");
+  const linkMediaType =
+    movie.media_type || (type === "TV Series" ? "tv" : "movie");
   const rating = movie.vote_average?.toFixed(1);
+  const myRating = getRating(movie.id, linkMediaType);
 
-  const startYear = (movie.release_date || movie.first_air_date || "").slice(0, 4);
+  const startYear = (movie.release_date || movie.first_air_date || "").slice(
+    0,
+    4,
+  );
   const endYear = movie.last_air_date ? movie.last_air_date.slice(0, 4) : "";
 
   let dateDisplay;
@@ -51,8 +57,6 @@ function MovieCard({ movie, type, size = "md" }) {
       dateDisplay = `${startYear} - ${endYear}`;
     } else if (startYear) {
       dateDisplay = `${startYear} - Ongoing`;
-    } else {
-      dateDisplay = "N/A";
     }
   } else {
     dateDisplay = startYear || "N/A";
@@ -78,10 +82,13 @@ function MovieCard({ movie, type, size = "md" }) {
       <div className="absolute inset-0 bg-black/10" />
       <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black via-black/75 to-transparent" />
 
-      <div className="absolute left-3 top-3 flex items-center gap-1.5">
-        <span className={`${s.heart} leading-none text-red-500`}>♥</span>
-        <span className={`${s.heartLabel} font-medium text-white`}>9.8</span>
-      </div>
+      {/* Personal rating badge — only shows once you've actually rated it */}
+      {myRating > 0 && (
+        <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 backdrop-blur-sm">
+          <IoHeart className="h-4 w-4 text-red-500" />
+          <span className="text-sm font-bold text-white">{myRating}</span>
+        </div>
+      )}
 
       <button
         type="button"
@@ -96,7 +103,9 @@ function MovieCard({ movie, type, size = "md" }) {
       </button>
 
       <div className={`absolute inset-x-0 bottom-0 ${s.padding}`}>
-        <h3 className={`${s.title} truncate font-bold leading-tight text-white`}>
+        <h3
+          className={`${s.title} truncate font-bold leading-tight text-white`}
+        >
           {title}
         </h3>
 
@@ -117,7 +126,9 @@ function MovieCard({ movie, type, size = "md" }) {
             className={`inline-flex items-center justify-center gap-1.5 rounded-full bg-[rgba(251,191,36,0.15)] ${s.pill} backdrop-blur-sm`}
           >
             <img src={tmdbStar} alt="" className="h-4 w-4 shrink-0" />
-            <span className={`${s.ratingText} font-semibold leading-none text-white`}>
+            <span
+              className={`${s.ratingText} font-semibold leading-none text-white`}
+            >
               {rating}
             </span>
           </div>

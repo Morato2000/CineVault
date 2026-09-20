@@ -16,7 +16,9 @@ import SearchResults from "../pages/SearchResults";
 import Details from "../pages/Details";
 import Cast from "../pages/Cast";
 import FullInfo from "../pages/FullInfo";
-
+import RootRedirect from "../pages/RootRedirect";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import NotFound from "../pages/NotFound";
 export default function AppRoutes() {
   return (
     <>
@@ -24,7 +26,7 @@ export default function AppRoutes() {
       <Routes>
         {/* Main Application */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RootRedirect />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/watchlist" element={<Watchlist />} />
           <Route path="/stats" element={<Stats />} />
@@ -34,6 +36,7 @@ export default function AppRoutes() {
           <Route path="/:mediaType/:id" element={<Details />} />
           <Route path="/:mediaType/:id/cast" element={<Cast />} />
           <Route path="/:mediaType/:id/info" element={<FullInfo />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         </Route>
 
         {/* Authentication */}
@@ -41,6 +44,9 @@ export default function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ForgotPassword />} />
         <Route path="/reset-password/sent" element={<ResetLinkSent />} />
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

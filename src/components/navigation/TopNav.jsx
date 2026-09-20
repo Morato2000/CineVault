@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { searchMulti } from "../../services/tmdb";
 import { getTmdbImage } from "../../utils/tmdbImage";
+import { useProfile } from "../../context/ProfileContext";
 
 function highlightMatch(text, query) {
   if (!query.trim()) return text;
@@ -29,7 +30,7 @@ function TopNav() {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { profile } = useProfile();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
@@ -255,7 +256,21 @@ function TopNav() {
               <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-purple-500" />
             </button>
 
-            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-gray-600" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-600">
+              {profile.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile.displayName || "Profile"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-sm font-bold text-white">
+                  {profile.displayName
+                    ? profile.displayName.charAt(0).toUpperCase()
+                    : "?"}
+                </span>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-5">

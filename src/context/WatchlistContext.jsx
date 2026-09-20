@@ -4,6 +4,26 @@ const WatchlistContext = createContext(null);
 const STORAGE_KEY = "cinevault_watchlist";
 
 export function WatchlistProvider({ children }) {
+  const clearWatchlist = () => setItems([]);
+
+  const importWatchlist = (importedItems) => {
+    if (!Array.isArray(importedItems)) return;
+
+    setItems((prev) => {
+      const merged = [...prev];
+
+      importedItems.forEach((item) => {
+        const exists = merged.some(
+          (i) => i.id === item.id && i.media_type === item.media_type,
+        );
+        if (!exists) {
+          merged.push(item);
+        }
+      });
+
+      return merged;
+    });
+  };
   const [items, setItems] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -28,13 +48,13 @@ export function WatchlistProvider({ children }) {
     setItems((prev) =>
       prev.some((i) => i.id === item.id && i.media_type === item.media_type)
         ? prev
-        : [...prev, { ...item, addedAt: Date.now() }]
+        : [...prev, { ...item, addedAt: Date.now() }],
     );
   };
 
   const removeFromWatchlist = (id, mediaType) => {
     setItems((prev) =>
-      prev.filter((i) => !(i.id === id && i.media_type === mediaType))
+      prev.filter((i) => !(i.id === id && i.media_type === mediaType)),
     );
   };
 
@@ -54,6 +74,8 @@ export function WatchlistProvider({ children }) {
         addToWatchlist,
         removeFromWatchlist,
         toggleWatchlist,
+        clearWatchlist,
+        importWatchlist,
       }}
     >
       {children}

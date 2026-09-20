@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const FavoritesContext = createContext(null);
 const STORAGE_KEY = "cinevault_favorites";
-
+const clearFavorites = () => setItems([]);
 export function FavoritesProvider({ children }) {
   const [items, setItems] = useState(() => {
     try {
@@ -68,17 +68,18 @@ export function FavoritesProvider({ children }) {
   };
 
   return (
-    <FavoritesContext.Provider
-      value={{
-        items,
-        isFavorited,
-        addFavorite,
-        removeFavorite,
-        toggleFavorite,
-        getRating,
-        setRating,
-      }}
-    >
+  <FavoritesContext.Provider
+  value={{
+    items,
+    isFavorited,
+    addFavorite,
+    removeFavorite,
+    toggleFavorite,
+    getRating,
+    setRating,
+    clearFavorites,
+  }}
+>
       {children}
     </FavoritesContext.Provider>
   );

@@ -11,7 +11,7 @@ import {
 import MovieCard from "../components/movies/MovieCard";
 import { getTmdbImage } from "../utils/tmdbImage";
 import { useWatchlist } from "../context/WatchlistContext";
-
+import { usePreferences } from "../context/PreferencesContext"
 const FILTERS = ["All", "Anime", "Movies", "TV Series"];
 const SORT_OPTIONS = ["Recently Added", "Highest Rated", "A-Z"];
 const PAGE_SIZE = 12;
@@ -49,11 +49,12 @@ function Watchlist() {
   const { items } = useWatchlist();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get("page") || 1);
+  const { preferences } = usePreferences();
 
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("Recently Added");
+const [activeFilter, setActiveFilter] = useState("All");
+const [sortBy, setSortBy] = useState(preferences.defaultSort);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
-  const [viewMode, setViewMode] = useState("grid");
+const [viewMode, setViewMode] = useState(preferences.defaultView);
 
   const goToPage = (nextPage) => {
     const next = new URLSearchParams(searchParams);

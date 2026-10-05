@@ -4,7 +4,7 @@ import { WatchlistProvider } from "./context/WatchlistContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { ProfileProvider } from "./context/ProfileContext";
 import { PreferencesProvider } from "./context/PreferencesContext";
-
+import { NotificationsProvider } from "./context/NotificationsContext";
 function App() {
   if ("scrollRestoration" in window.history) {
     window.history.scrollRestoration = "manual";
@@ -15,7 +15,9 @@ function App() {
         <PreferencesProvider>
           <WatchlistProvider>
             <FavoritesProvider>
+              <NotificationsProvider>
               <AppRoutes />
+              </NotificationsProvider>
             </FavoritesProvider>
           </WatchlistProvider>
         </PreferencesProvider>

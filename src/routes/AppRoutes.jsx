@@ -19,6 +19,7 @@ import FullInfo from "../pages/FullInfo";
 import RootRedirect from "../pages/RootRedirect";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import NotFound from "../pages/NotFound";
+import Notifications from "../pages/Notifications";
 export default function AppRoutes() {
   return (
     <>
@@ -34,6 +35,7 @@ export default function AppRoutes() {
           <Route path="/help" element={<Help />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/:mediaType/:id" element={<Details />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/:mediaType/:id/cast" element={<Cast />} />
           <Route path="/:mediaType/:id/info" element={<FullInfo />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

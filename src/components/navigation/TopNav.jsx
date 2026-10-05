@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FiSearch, FiBell, FiX } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { searchMulti } from "../../services/tmdb";
 import { getTmdbImage } from "../../utils/tmdbImage";
 import { useProfile } from "../../context/ProfileContext";
+import { useNotifications } from "../../context/NotificationsContext";
+import { formatRelativeTime } from "../../utils/formatRelativeTime";
 
 function highlightMatch(text, query) {
   if (!query.trim()) return text;
@@ -27,13 +29,17 @@ function highlightMatch(text, query) {
 }
 
 function TopNav() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const location = useLocation();
   const { profile } = useProfile();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
+  const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -134,7 +140,11 @@ function TopNav() {
     setResults([]);
     setTotalResults(0);
   };
-
+  const handleLogout = () => {
+    logout();
+    setAccountMenuOpen(false);
+    navigate("/");
+  };
   return (
     <header className="px-8 py-8">
       <div className="flex items-center justify-between gap-8">
@@ -246,39 +256,139 @@ function TopNav() {
 
         {/* Right side */}
         {isLoggedIn ? (
-          <div className="flex items-center gap-6">
+          <div className="relative z-40 flex shrink-0 items-center gap-3 sm:gap-6">
+            {/* Notifications */}
+           <button
+    type="button"
+    onClick={() => setNotifMenuOpen((v) => !v)}
+    aria-label="Notifications"
+   className="relative z-40 flex h-9 w-9 shrink-0 items-center justify-center text-white sm:h-auto sm:w-auto"
+  >
+    <FiBell className="h-6 w-6" />
+    {unreadCount > 0 && (
+      <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-purple-500" />
+    )}
+  </button>
+
+  {notifMenuOpen && (
+    <>
+      <div className="fixed inset-0 z-10" onClick={() => setNotifMenuOpen(false)} />
+      <div className="absolute right-0 top-12 z-20 w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+        <div className="flex items-center justify-between px-1">
+          <p className="font-bold text-white">Notifications</p>
+          {notifications.length > 0 && (
+            <button type="button" onClick={markAllAsRead} className="text-xs font-medium text-purple-400 hover:text-purple-300">
+              Mark all as read
+            </button>
+          )}
+        </div>
+
+        <div className="mt-2 max-h-96 space-y-1 overflow-y-auto">
+          {notifications.length === 0 && (
+            <p className="px-1 py-6 text-center text-sm text-gray-400">You're all caught up.</p>
+          )}
+
+          {notifications.slice(0, 8).map((n) => (
+            <Link
+              key={n.id}
+              to={n.link || "#"}
+              onClick={() => {
+                markAsRead(n.id);
+                setNotifMenuOpen(false);
+              }}
+              className={`flex items-start gap-3 rounded-xl p-2 hover:bg-white/5 ${n.read ? "" : "bg-white/[0.03]"}`}
+            >
+              {n.image ? (
+                <img src={n.image} alt="" className="h-12 w-9 shrink-0 rounded-md object-cover" />
+              ) : (
+                <div className="h-12 w-9 shrink-0 rounded-md bg-white/10" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-white">{n.title}</p>
+                <p className="truncate text-xs text-gray-400">{n.message}</p>
+                <p className="mt-0.5 text-xs text-purple-400">{formatRelativeTime(n.timestamp)}</p>
+              </div>
+              {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-purple-500" />}
+            </Link>
+          ))}
+        </div>
+
+        {notifications.length > 0 && (
+          <Link
+            to="/notifications"
+            onClick={() => setNotifMenuOpen(false)}
+            className="mt-2 block rounded-xl border-t border-white/10 pt-3 text-center text-sm font-medium text-purple-400 hover:text-purple-300"
+          >
+            View all notifications
+          </Link>
+        )}
+      </div>
+    </>
+  )}
+
+            {/* Profile */}
             <button
               type="button"
-              aria-label="Notifications"
-              className="relative text-white"
+              onClick={() => setAccountMenuOpen((v) => !v)}
+              className="relative z-40 h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-600 sm:h-11 sm:w-11"
             >
-              <FiBell className="h-6 w-6" />
-              <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-purple-500" />
-            </button>
-
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-600">
-              {profile.avatar ? (
+              {profile?.avatar ? (
                 <img
                   src={profile.avatar}
-                  alt={profile.displayName || "Profile"}
+                  alt=""
                   className="h-full w-full object-cover"
                 />
               ) : (
                 <span className="text-sm font-bold text-white">
-                  {profile.displayName
+                  {profile?.displayName
                     ? profile.displayName.charAt(0).toUpperCase()
                     : "?"}
                 </span>
               )}
-            </div>
+            </button>
+
+            {/* Account dropdown */}
+            {accountMenuOpen && (
+              <>
+                {/* Click outside to close */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setAccountMenuOpen(false)}
+                />
+
+                {/* Menu */}
+                <div className="absolute right-0 top-14 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                  <Link
+                    to="/settings"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="block rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                  >
+                    Settings
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-red-400 hover:bg-red-500/10"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-5">
-            <button className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-7 py-3 font-semibold text-white">
+            <button
+              onClick={() => navigate("/register")}
+              className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-7 py-3 font-semibold text-white"
+            >
               Sign Up
             </button>
-
-            <button className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-[1px]">
+            <button
+              onClick={() => navigate("/login")}
+              className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-[1px]"
+            >
               <span className="block rounded-full bg-[#080D17] px-7 py-3 font-semibold text-white">
                 Login
               </span>

@@ -35,20 +35,15 @@ function StatCard({ iconSrc, label, value, sub }) {
   return (
     <div className="rounded-2xl bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-px">
       <div className="flex items-center gap-3 rounded-[15px] bg-[#080F1A] p-3.5">
-        <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-          style={{ backgroundColor: ICON_BADGE }}
-        >
-          <img src={iconSrc} alt="" className="h-8 w-8" />
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: ICON_BADGE }}>
+          <img src={iconSrc} alt="" className="h-5 w-5" />
         </span>
         <div className="min-w-0">
           <p className="text-sm leading-tight text-gray-300">{label}</p>
           <p className="text-lg font-bold leading-tight text-white">{value}</p>
-          {sub && (
-            <p className="text-xs font-medium leading-tight text-purple-400">
-              {sub}
-            </p>
-          )}
+          <p className={`text-xs font-medium leading-tight text-purple-400 ${sub ? "" : "invisible"}`}>
+            {sub || "placeholder"}
+          </p>
         </div>
       </div>
     </div>

@@ -364,8 +364,8 @@ export async function searchMulti(query, page = 1) {
 export async function getTitleDetails(mediaType, id) {
   const appends =
     mediaType === "tv"
-      ? "aggregate_credits,recommendations,videos"
-      : "credits,recommendations,videos";
+      ? "aggregate_credits,recommendations,videos,watch/providers,reviews"
+      : "credits,recommendations,videos,watch/providers,reviews";
 
   const response = await fetch(
     `${BASE_URL}/${mediaType}/${id}?append_to_response=${appends}`,
@@ -374,6 +374,15 @@ export async function getTitleDetails(mediaType, id) {
 
   if (!response.ok) {
     throw new Error("Failed to fetch title details");
+  }
+
+  return response.json();
+}
+export async function getSeasonDetails(tvId, seasonNumber) {
+  const response = await fetch(`${BASE_URL}/tv/${tvId}/season/${seasonNumber}`, options);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch season details");
   }
 
   return response.json();

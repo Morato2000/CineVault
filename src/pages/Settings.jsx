@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Cropper from "react-easy-crop";
 import {
   IoPersonCircleOutline,
   IoCameraOutline,
@@ -51,6 +52,7 @@ import { useProfile } from "../context/ProfileContext";
 import { usePreferences } from "../context/PreferencesContext";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useFavorites } from "../context/FavoritesContext";
+import { useNotifications } from "../context/NotificationsContext";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/common/Toast";
 
@@ -343,12 +345,50 @@ function ConfirmDialog({
   );
 }
 
+async function getCroppedAvatar(imageSrc, croppedAreaPixels) {
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+
+    img.src = imageSrc;
+  });
+
+  const canvas = document.createElement("canvas");
+  const size = 256;
+
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Could not create canvas context.");
+  }
+
+  ctx.drawImage(
+    image,
+    croppedAreaPixels.x,
+    croppedAreaPixels.y,
+    croppedAreaPixels.width,
+    croppedAreaPixels.height,
+    0,
+    0,
+    size,
+    size,
+  );
+
+  return canvas.toDataURL("image/jpeg", 0.9);
+}
+
 function Settings() {
   const { profile, updateProfile } = useProfile();
   const { preferences, updatePreference, updateNotification } =
     usePreferences();
   const { items, clearWatchlist, importWatchlist } = useWatchlist();
   const { clearFavorites } = useFavorites();
+  const { addNotification } = useNotifications();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -360,18 +400,97 @@ function Settings() {
   const [toastMessage, setToastMessage] = useState(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImage, setCropImage] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [cropSaving, setCropSaving] = useState(false);
   const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
+  const cropImageUrlRef = useRef(null);
 
   const showToast = (msg) => setToastMessage(msg);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => updateProfile({ avatar: reader.result });
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      showToast("Please choose an image file.");
+      return;
+    }
+
+    if (cropImageUrlRef.current) {
+      URL.revokeObjectURL(cropImageUrlRef.current);
+    }
+
+    const imageUrl = URL.createObjectURL(file);
+
+    cropImageUrlRef.current = imageUrl;
+
+    setCropImage(imageUrl);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCropModalOpen(true);
+
+    e.target.value = "";
+  };
+
+  const handleCropComplete = (_, croppedPixels) => {
+    setCroppedAreaPixels(croppedPixels);
+  };
+
+  const handleCropCancel = () => {
+    if (cropImageUrlRef.current) {
+      URL.revokeObjectURL(cropImageUrlRef.current);
+      cropImageUrlRef.current = null;
+    }
+
+    setCropImage(null);
+    setCropModalOpen(false);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+  };
+
+  const handleCropSave = async () => {
+    if (!cropImage || !croppedAreaPixels) {
+      return;
+    }
+
+    setCropSaving(true);
+
+    try {
+      const croppedAvatar = await getCroppedAvatar(
+        cropImage,
+        croppedAreaPixels,
+      );
+
+      updateProfile({
+        avatar: croppedAvatar,
+      });
+
+      if (cropImageUrlRef.current) {
+        URL.revokeObjectURL(cropImageUrlRef.current);
+        cropImageUrlRef.current = null;
+      }
+
+      setCropImage(null);
+      setCropModalOpen(false);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+
+      showToast("Profile picture updated.");
+    } catch (error) {
+      console.error("Failed to crop avatar:", error);
+      showToast("Couldn't process that image. Please try again.");
+    } finally {
+      setCropSaving(false);
+    }
   };
 
   const handleSaveProfile = () => {
@@ -383,12 +502,25 @@ function Settings() {
     const blob = new Blob([JSON.stringify(items, null, 2)], {
       type: "application/json",
     });
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     a.href = url;
     a.download = "cinevault-watchlist.json";
     a.click();
+
     URL.revokeObjectURL(url);
+
+    addNotification({
+      title: "Watchlist Exported",
+      message: `${items.length} ${
+        items.length === 1 ? "title was" : "titles were"
+      } exported successfully.`,
+      link: "/settings",
+    });
+
+    showToast("Watchlist exported.");
   };
 
   const handleImportFile = (e) => {
@@ -396,10 +528,25 @@ function Settings() {
     if (!file) return;
 
     const reader = new FileReader();
+
     reader.onload = () => {
       try {
         const parsed = JSON.parse(reader.result);
+
+        if (!Array.isArray(parsed)) {
+          throw new Error("Invalid format");
+        }
+
         importWatchlist(parsed);
+
+        addNotification({
+          title: "Watchlist Imported",
+          message: `${parsed.length} ${
+            parsed.length === 1 ? "title was" : "titles were"
+          } imported successfully.`,
+          link: "/watchlist",
+        });
+
         showToast(`Imported ${parsed.length} title(s).`);
       } catch {
         showToast(
@@ -407,13 +554,29 @@ function Settings() {
         );
       }
     };
+
     reader.readAsText(file);
     e.target.value = "";
   };
 
   const handleClearWatchlist = () => {
+    if (items.length === 0) {
+      setConfirmClear(false);
+      showToast("Your watchlist is already empty.");
+      return;
+    }
+
     clearWatchlist();
     setConfirmClear(false);
+
+    addNotification({
+      title: "Watchlist Cleared",
+      message: `${items.length} ${
+        items.length === 1 ? "title was" : "titles were"
+      } removed from your watchlist.`,
+      link: "/watchlist",
+    });
+
     showToast("Watchlist cleared.");
   };
 
@@ -424,7 +587,14 @@ function Settings() {
     setConfirmDelete(false);
     navigate("/");
   };
-
+  useEffect(() => {
+    return () => {
+      if (cropImageUrlRef.current) {
+        URL.revokeObjectURL(cropImageUrlRef.current);
+         cropImageUrlRef.current = null;
+      }
+    };
+  }, []);
   return (
     <div className="px-8 pb-16">
       <h1 className="text-2xl font-bold text-white">Settings</h1>
@@ -764,6 +934,75 @@ function Settings() {
         </div>
       </div>
 
+      {cropModalOpen && cropImage && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] shadow-2xl shadow-black/50">
+            <div className="border-b border-white/10 px-5 py-4">
+              <h3 className="text-lg font-bold text-white">
+                Adjust Profile Picture
+              </h3>
+
+              <p className="mt-1 text-xs text-gray-400">
+                Drag the image to position it and use the slider to zoom.
+              </p>
+            </div>
+
+            <div className="relative h-[320px] w-full bg-black">
+              <Cropper
+                image={cropImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={handleCropComplete}
+              />
+            </div>
+
+            <div className="px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500">Zoom</span>
+
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.01}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-white/15 accent-purple-500"
+                />
+
+                <span className="w-10 text-right text-xs text-gray-400">
+                  {zoom.toFixed(1)}x
+                </span>
+              </div>
+
+              <div className="mt-5 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleCropCancel}
+                  disabled={cropSaving}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCropSave}
+                  disabled={!croppedAreaPixels || cropSaving}
+                  className="rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {cropSaving ? "Saving..." : "Save Picture"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <ConfirmDialog
         open={confirmClear}
         title="Clear Watchlist Data"

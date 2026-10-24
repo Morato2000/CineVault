@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useProfile } from "../context/ProfileContext";
 import { IoCalendarOutline } from "react-icons/io5";
 import { useWatchlist } from "../context/WatchlistContext";
+import { useFavorites } from "../context/FavoritesContext";
 import { getTitleDetails } from "../services/tmdb";
 import { getTmdbImage } from "../utils/tmdbImage";
 import { getGenreColor } from "../constants/genreColors";
 import { getGenreIcon } from "../constants/genreIcons";
 import { GENRE_ID_TO_NAME } from "../constants/genreNames";
 import { formatRelativeTime } from "../utils/formatRelativeTime";
-
+import AnimatedNumber from "../components/common/AnimatedNumber";
 import statMovie from "../assets/icons/stat-movie.svg";
 import statTv from "../assets/icons/stat-tv.svg";
 import statWatch from "../assets/icons/stat-watch.svg";
@@ -20,6 +22,7 @@ import statRank2 from "../assets/icons/stat-rank2.svg";
 import statRank3 from "../assets/icons/stat-rank3.svg";
 import statRank4 from "../assets/icons/stat-rank4.svg";
 import statRank5 from "../assets/icons/stat-rank5.svg";
+import { IoSparkles } from "react-icons/io5";
 
 const RANK_ICONS = [statRank1, statRank2, statRank3, statRank4, statRank5];
 
@@ -31,17 +34,32 @@ const ICON_BADGE = "#4D28A7";
 const INSIGHT_BADGE_BG = "#14163A";
 const INSIGHT_ICON_COLOR = "#6439F6";
 
-function StatCard({ iconSrc, label, value, sub }) {
+function StatCard({ iconSrc, label, value, sub, valueSuffix = "" }) {
   return (
     <div className="rounded-2xl bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-px">
-      <div className="flex items-center gap-3 rounded-[15px] bg-[#080F1A] p-3.5">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: ICON_BADGE }}>
+      <div className="flex items-center gap-3 rounded-[15px] bg-[#080F1A] p-4 sm:p-5">
+        <span
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+          style={{ backgroundColor: ICON_BADGE }}
+        >
           <img src={iconSrc} alt="" className="h-5 w-5" />
         </span>
         <div className="min-w-0">
           <p className="text-sm leading-tight text-gray-300">{label}</p>
-          <p className="text-lg font-bold leading-tight text-white">{value}</p>
-          <p className={`text-xs font-medium leading-tight text-purple-400 ${sub ? "" : "invisible"}`}>
+          <p className="text-lg font-bold leading-tight text-white">
+            {typeof value === "number" && Number.isFinite(value) ? (
+              <AnimatedNumber
+                value={value}
+                decimals={Number.isInteger(value) ? 0 : 1}
+                suffix={valueSuffix}
+              />
+            ) : (
+              value
+            )}
+          </p>
+          <p
+            className={`text-xs font-medium leading-tight text-purple-400 ${sub ? "" : "invisible"}`}
+          >
             {sub || "placeholder"}
           </p>
         </div>
@@ -83,9 +101,12 @@ function formatRuntime(totalMinutes) {
 }
 
 function Stats() {
-  const { items } = useWatchlist();
+  const { items, loading } = useWatchlist();
+  const { getRating } = useFavorites();
+  const [ratingSource, setRatingSource] = useState("personal");
   const [totalMinutes, setTotalMinutes] = useState(null);
   const [weeklyMinutes, setWeeklyMinutes] = useState(null);
+  const { profile } = useProfile();
 
   const movies = useMemo(
     () => items.filter((i) => i.media_type === "movie"),
@@ -138,14 +159,24 @@ function Stats() {
     return slices;
   }, [items]);
 
-  const highestRated = useMemo(
-    () =>
-      [...items]
-        .filter((i) => i.vote_average)
-        .sort((a, b) => b.vote_average - a.vote_average)
-        .slice(0, 5),
-    [items],
-  );
+  const highestRated = useMemo(() => {
+    if (ratingSource === "personal") {
+      return items
+        .map((item) => ({
+          ...item,
+          _rating: getRating(item.id, item.media_type),
+        }))
+        .filter((item) => item._rating > 0)
+        .sort((a, b) => b._rating - a._rating)
+        .slice(0, 5);
+    }
+
+    return [...items]
+      .filter((item) => item.vote_average)
+      .sort((a, b) => b.vote_average - a.vote_average)
+      .slice(0, 5)
+      .map((item) => ({ ...item, _rating: item.vote_average }));
+  }, [items, ratingSource, getRating]);
 
   const recentlyAdded = useMemo(
     () =>
@@ -233,8 +264,32 @@ function Stats() {
       <p className="mt-1 text-gray-400">
         Insights from your watchlist collection.
       </p>
+      {profile?.username && (
+        <p className="mt-2 text-sm text-purple-400">@{profile.username}</p>
+      )}
+      <Link
+        to="/wrapped"
+        className="mt-4 flex items-center justify-between gap-4 rounded-2xl bg-linear-to-r from-[#A855F7]/20 to-[#3B82F6]/20 border border-purple-500/30 p-4 transition hover:from-[#A855F7]/30 hover:to-[#3B82F6]/30"
+      >
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7947C0]">
+            <IoSparkles className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <p className="font-bold text-white">Your CineVault Wrapped</p>
+            <p className="text-xs text-gray-400">
+              See your monthly and yearly recap
+            </p>
+          </div>
+        </div>
+        <span className="text-sm font-medium text-purple-300">View →</span>
+      </Link>
 
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="mt-16 flex justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="mt-16 flex flex-col items-center text-center">
           <p className="text-gray-400">
             Your watchlist is empty — add titles to see your stats here.
@@ -307,7 +362,8 @@ function Stats() {
             <StatCard
               iconSrc={statStar2}
               label="Avg. Rating"
-              value={avgRating ? `${avgRating}/10` : "N/A"}
+              value={avgRating ? Number(avgRating) : "N/A"}
+              valueSuffix={avgRating ? "/10" : ""}
               sub={
                 totalAddedThisWeek > 0
                   ? `+${totalAddedThisWeek} titles this week`
@@ -443,70 +499,107 @@ function Stats() {
             <div className="flex flex-col gap-6">
               {/* Highest Rated Titles */}
               <div className="rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-5">
-                <h2 className="font-bold text-white">Highest Rated Titles</h2>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="font-bold text-white">Highest Rated Titles</h2>
 
-                <p className="text-xs text-gray-500">
-                  Top titles in your watchlist
+                  <div className="flex overflow-hidden rounded-lg border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setRatingSource("personal")}
+                      aria-pressed={ratingSource === "personal"}
+                      className={`px-2.5 py-2 text-xs font-medium ${
+                        ratingSource === "personal"
+                          ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      My Rating
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRatingSource("tmdb")}
+                      aria-pressed={ratingSource === "tmdb"}
+                      className={`px-2.5 py-2 text-xs font-medium ${
+                        ratingSource === "tmdb"
+                          ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      TMDB
+                    </button>
+                  </div>
+                </div>
+
+                <p className="mt-1 text-xs text-gray-500">
+                  {ratingSource === "personal"
+                    ? "Your highest personal ratings"
+                    : "Highest-rated titles by TMDB"}
                 </p>
 
-                <div className="mt-4 space-y-3">
-                  {highestRated.map((item, index) => {
-                    const title = item.title || item.name;
+                {highestRated.length === 0 ? (
+                  <p className="mt-4 text-sm text-gray-400">
+                    {ratingSource === "personal"
+                      ? "Rate titles in your watchlist to see them ranked here."
+                      : "No TMDB ratings are available for your watchlist yet."}
+                  </p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {highestRated.map((item, index) => {
+                      const title = item.title || item.name;
+                      const poster = getTmdbImage(item.poster_path, "w92");
 
-                    const poster = getTmdbImage(item.poster_path, "w92");
+                      const year = (
+                        item.release_date ||
+                        item.first_air_date ||
+                        ""
+                      ).slice(0, 4);
 
-                    const year = (
-                      item.release_date ||
-                      item.first_air_date ||
-                      ""
-                    ).slice(0, 4);
-
-                    return (
-                      <Link
-                        key={`${item.media_type}-${item.id}`}
-                        to={`/${item.media_type}/${item.id}`}
-                        className="flex items-center gap-3 rounded-xl p-1.5 hover:bg-white/5"
-                      >
-                        <img
-                          src={RANK_ICONS[index]}
-                          alt={`#${index + 1}`}
-                          className="h-7 w-7 shrink-0"
-                        />
-
-                        {poster ? (
+                      return (
+                        <Link
+                          key={`${item.media_type}-${item.id}`}
+                          to={`/${item.media_type}/${item.id}`}
+                          className="flex items-center gap-3 rounded-xl p-1.5 hover:bg-white/5"
+                        >
                           <img
-                            src={poster}
-                            alt=""
-                            className="h-12 w-9 rounded-md object-cover"
+                            src={RANK_ICONS[index]}
+                            alt={`#${index + 1}`}
+                            className="h-7 w-7 shrink-0"
                           />
-                        ) : (
-                          <div className="h-12 w-9 shrink-0 rounded-md bg-white/10" />
-                        )}
 
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-white">
-                            {title}
-                          </p>
+                          {poster ? (
+                            <img
+                              src={poster}
+                              alt=""
+                              className="h-12 w-9 rounded-md object-cover"
+                            />
+                          ) : (
+                            <div className="h-12 w-9 shrink-0 rounded-md bg-white/10" />
+                          )}
 
-                          <p className="text-xs text-gray-400">{year}</p>
-                        </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-white">
+                              {title}
+                            </p>
+                            <p className="text-xs text-gray-400">{year}</p>
+                          </div>
 
-                        <span className="flex items-center gap-1 text-sm font-bold text-white">
-                          <img src={statStar} alt="" className="h-4 w-4 " />
-
-                          {item.vote_average?.toFixed(1)}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
+                          <span className="flex items-center gap-1 text-sm font-bold text-white">
+                            <img src={statStar} alt="" className="h-4 w-4" />
+                            {item._rating.toFixed(1)}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Collection Insights */}
               <div className="rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-4">
                 <h2 className="font-bold text-white">Collection Insights</h2>
 
-                <div className="mt-3 grid grid-cols-2 gap-2.5">
+                <div className="mt-3 grid grid-cols-2 gap-3.5">
                   <InsightCard
                     icon={
                       favoriteGenre
@@ -543,11 +636,15 @@ function Stats() {
                   <InsightCard
                     iconSrc={statHighestTitle}
                     label="Highest Rated"
-                    value={topRatedTitle?.title || topRatedTitle?.name || "N/A"}
+                    value={
+                      topRatedTitle?.title ||
+                      topRatedTitle?.name ||
+                      "No rated titles yet"
+                    }
                     sub={
                       topRatedTitle
-                        ? `⭐ ${topRatedTitle.vote_average?.toFixed(1)}`
-                        : null
+                        ? `⭐ ${topRatedTitle._rating.toFixed(1)}`
+                        : "n/a"
                     }
                   />
                 </div>

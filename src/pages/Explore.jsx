@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -83,16 +84,86 @@ function Explore() {
   const hasActiveFilters = activeFilter !== "All" || activeGenre !== null;
 
   // One direct, top-level hook call per section — order and count never change between renders.
-  const trending = useExploreSection(getTrendingAllToday, activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const newReleases = useExploreSection(getNewReleases, activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const topRated = useExploreSection(getTopRatedAll, activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const anime = useExploreSection(getAnime, activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const kdrama = useExploreSection(getKDrama, activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const action = useExploreSection(() => getByGenre(28, 10759), activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const comedy = useExploreSection(() => getByGenre(35, 35), activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const horror = useExploreSection(() => getByGenre(27, 9648), activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const scifi = useExploreSection(() => getByGenre(878, 10765), activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
-  const romance = useExploreSection(() => getByGenre(10749, 10766), activeFilter, activeGenre, matchesTypeFilter, matchesGenre, []);
+  const trending = useExploreSection(
+    getTrendingAllToday,
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const newReleases = useExploreSection(
+    getNewReleases,
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const topRated = useExploreSection(
+    getTopRatedAll,
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const anime = useExploreSection(
+    getAnime,
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const kdrama = useExploreSection(
+    getKDrama,
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const action = useExploreSection(
+    () => getByGenre(28, 10759),
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const comedy = useExploreSection(
+    () => getByGenre(35, 35),
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const horror = useExploreSection(
+    () => getByGenre(27, 9648),
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const scifi = useExploreSection(
+    () => getByGenre(878, 10765),
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+  const romance = useExploreSection(
+    () => getByGenre(10749, 10766),
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
 
   const emptyMessage = hasActiveFilters
     ? "No titles match your current filters."
@@ -104,14 +175,19 @@ function Explore() {
       <p className="mt-1 text-gray-400">Discover Movies, Anime and Tv series</p>
 
       {/* Filters */}
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="mt-5 flex flex-wrap items-center gap-3"
+      >
         {FILTERS.map((filter) => (
           <button
             key={filter}
             type="button"
             onClick={() => setActiveFilter(filter)}
             aria-pressed={activeFilter === filter}
-            className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+            className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] ${
               activeFilter === filter
                 ? "bg-gradient-to-b from-[#A855F7] to-[#3B82F6] text-white"
                 : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
@@ -121,16 +197,24 @@ function Explore() {
           </button>
         ))}
 
-        {activeGenre && (
-          <button
-            type="button"
-            onClick={() => setActiveGenre(null)}
-            className="flex items-center gap-1.5 rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] px-4 py-2 text-sm font-semibold text-white"
-          >
-            {activeGenre.label}
-            <IoClose className="h-4 w-4" />
-          </button>
-        )}
+        <AnimatePresence>
+          {activeGenre && (
+            <motion.button
+              key={activeGenre.label}
+              type="button"
+              onClick={() => setActiveGenre(null)}
+              initial={{ opacity: 0, scale: 0.85, x: -8 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.85, x: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-1.5 rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] px-4 py-2 text-sm font-semibold text-white"
+            >
+              {activeGenre.label}
+              <IoClose className="h-4 w-4" />
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         <div className="relative ml-auto">
           <button
@@ -153,7 +237,7 @@ function Explore() {
 
               <div
                 role="listbox"
-                className="absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
+                className="animate-pop origin-top-right absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
               >
                 <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Genre
@@ -169,7 +253,7 @@ function Explore() {
                       setActiveGenre(genre);
                       setGenreMenuOpen(false);
                     }}
-                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
+                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                       activeGenre?.label === genre.label
                         ? "bg-white/10 text-white"
                         : "text-gray-300 hover:bg-white/5 hover:text-white"
@@ -182,40 +266,131 @@ function Explore() {
             </>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Active filter summary */}
-      {hasActiveFilters && (
-        <div className="mt-4 flex items-center gap-3 text-sm text-gray-400">
-          <span>
-            Showing:{" "}
-            <span className="font-medium text-white">
-              {[activeFilter !== "All" ? activeFilter : null, activeGenre?.label]
-                .filter(Boolean)
-                .join(" • ")}
-            </span>
-          </span>
-
-          <button
-            type="button"
-            onClick={clearAllFilters}
-            className="font-medium text-purple-400 hover:text-purple-300"
+      <AnimatePresence mode="wait">
+        {hasActiveFilters && (
+          <motion.div
+            key={`${activeFilter}-${activeGenre?.label || ""}`}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="mt-4 flex items-center gap-3 text-sm text-gray-400"
           >
-            Clear all
-          </button>
-        </div>
-      )}
+            <span>
+              Showing:{" "}
+              <span className="font-medium text-white">
+                {[
+                  activeFilter !== "All" ? activeFilter : null,
+                  activeGenre?.label,
+                ]
+                  .filter(Boolean)
+                  .join(" • ")}
+              </span>
+            </span>
 
-      <MovieSection title="Trending Today" icon={IoFlame} iconClass="text-orange-500" emptyMessage={emptyMessage} movies={trending.movies} loading={trending.loading} error={trending.error} />
-      <MovieSection title="New Releases" icon={IoSparkles} iconClass="text-blue-400" emptyMessage={emptyMessage} movies={newReleases.movies} loading={newReleases.loading} error={newReleases.error} />
-      <MovieSection title="Top Rated Shows" icon={IoStar} iconClass="text-amber-400" emptyMessage={emptyMessage} movies={topRated.movies} loading={topRated.loading} error={topRated.error} />
-      <MovieSection title="Anime" emptyMessage={emptyMessage} movies={anime.movies} loading={anime.loading} error={anime.error} />
-      <MovieSection title="K-Drama" icon={IoLanguage} iconClass="text-pink-400" emptyMessage={emptyMessage} movies={kdrama.movies} loading={kdrama.loading} error={kdrama.error} />
-      <MovieSection title="Action & Adventure" icon={IoRocket} iconClass="text-red-400" emptyMessage={emptyMessage} movies={action.movies} loading={action.loading} error={action.error} />
-      <MovieSection title="Comedy" emptyMessage={emptyMessage} movies={comedy.movies} loading={comedy.loading} error={comedy.error} />
-      <MovieSection title="Horror" icon={IoSkull} iconClass="text-gray-300" emptyMessage={emptyMessage} movies={horror.movies} loading={horror.loading} error={horror.error} />
-      <MovieSection title="Sci-Fi" icon={IoRocket} iconClass="text-cyan-400" emptyMessage={emptyMessage} movies={scifi.movies} loading={scifi.loading} error={scifi.error} />
-      <MovieSection title="Romance" icon={IoHeart} iconClass="text-rose-400" emptyMessage={emptyMessage} movies={romance.movies} loading={romance.loading} error={romance.error} />
+            <motion.button
+              type="button"
+              onClick={clearAllFilters}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              className="font-medium text-purple-400 hover:text-purple-300"
+            >
+              Clear all
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <MovieSection
+        title="Trending Today"
+        icon={IoFlame}
+        iconClass="text-orange-500"
+        emptyMessage={emptyMessage}
+        movies={trending.movies}
+        loading={trending.loading}
+        error={trending.error}
+      />
+      <MovieSection
+        title="New Releases"
+        icon={IoSparkles}
+        iconClass="text-blue-400"
+        emptyMessage={emptyMessage}
+        movies={newReleases.movies}
+        loading={newReleases.loading}
+        error={newReleases.error}
+      />
+      <MovieSection
+        title="Top Rated Shows"
+        icon={IoStar}
+        iconClass="text-amber-400"
+        emptyMessage={emptyMessage}
+        movies={topRated.movies}
+        loading={topRated.loading}
+        error={topRated.error}
+      />
+      <MovieSection
+        title="Anime"
+        emptyMessage={emptyMessage}
+        movies={anime.movies}
+        loading={anime.loading}
+        error={anime.error}
+      />
+      <MovieSection
+        title="K-Drama"
+        icon={IoLanguage}
+        iconClass="text-pink-400"
+        emptyMessage={emptyMessage}
+        movies={kdrama.movies}
+        loading={kdrama.loading}
+        error={kdrama.error}
+      />
+      <MovieSection
+        title="Action & Adventure"
+        icon={IoRocket}
+        iconClass="text-red-400"
+        emptyMessage={emptyMessage}
+        movies={action.movies}
+        loading={action.loading}
+        error={action.error}
+      />
+      <MovieSection
+        title="Comedy"
+        emptyMessage={emptyMessage}
+        movies={comedy.movies}
+        loading={comedy.loading}
+        error={comedy.error}
+      />
+      <MovieSection
+        title="Horror"
+        icon={IoSkull}
+        iconClass="text-gray-300"
+        emptyMessage={emptyMessage}
+        movies={horror.movies}
+        loading={horror.loading}
+        error={horror.error}
+      />
+      <MovieSection
+        title="Sci-Fi"
+        icon={IoRocket}
+        iconClass="text-cyan-400"
+        emptyMessage={emptyMessage}
+        movies={scifi.movies}
+        loading={scifi.loading}
+        error={scifi.error}
+      />
+      <MovieSection
+        title="Romance"
+        icon={IoHeart}
+        iconClass="text-rose-400"
+        emptyMessage={emptyMessage}
+        movies={romance.movies}
+        loading={romance.loading}
+        error={romance.error}
+      />
     </div>
   );
 }

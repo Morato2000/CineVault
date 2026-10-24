@@ -1,3 +1,5 @@
+import Avatar from "../common/Avatar";
+
 import { useEffect, useRef, useState } from "react";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -117,9 +119,9 @@ function MobileHeader({ onMenuClick }) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     setAccountMenuOpen(false);
-    logout();
     navigate("/");
   };
 
@@ -166,7 +168,7 @@ function MobileHeader({ onMenuClick }) {
                     onClick={() => setNotifMenuOpen(false)}
                   />
 
-                  <div className="absolute right-0 top-11 z-20 w-[calc(100vw-24px)] max-w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+                 <div className="animate-pop origin-top-right absolute right-0 top-11 z-20 w-[calc(100vw-24px)] max-w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
                     <div className="flex items-center justify-between px-2 pb-3">
                       <h3 className="text-sm font-semibold text-white">
                         Notifications
@@ -264,21 +266,14 @@ function MobileHeader({ onMenuClick }) {
                   setNotifMenuOpen(false);
                 }}
                 aria-label="Account menu"
+                aria-expanded={accountMenuOpen}
                 className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-600"
               >
-                {profile?.avatar ? (
-                  <img
-                    src={profile.avatar}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-sm font-bold text-white">
-                    {profile?.displayName
-                      ? profile.displayName.charAt(0).toUpperCase()
-                      : "?"}
-                  </span>
-                )}
+                <Avatar
+                  src={profile?.avatar}
+                  name={profile?.displayName}
+                  className="h-full w-full"
+                />
               </button>
 
               {accountMenuOpen && (
@@ -288,7 +283,7 @@ function MobileHeader({ onMenuClick }) {
                     onClick={() => setAccountMenuOpen(false)}
                   />
 
-                  <div className="absolute right-0 top-11 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                 <div className="animate-pop origin-top-right absolute right-0 top-11 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                     <div className="border-b border-white/10 px-3 py-2.5">
                       <p className="truncate text-sm font-semibold text-white">
                         {profile?.displayName || "User"}
@@ -380,7 +375,7 @@ function MobileHeader({ onMenuClick }) {
         </div>
 
         {isOpen && query.trim().length >= 2 && (
-          <div className="absolute left-0 right-0 top-14 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+        <div className="animate-pop origin-top absolute left-0 right-0 top-14 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
             {results.length === 0 && !loading && (
               <p className="px-3 py-4 text-center text-sm text-gray-400">
                 No results for "{query}"

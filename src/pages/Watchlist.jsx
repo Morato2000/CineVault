@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -11,7 +12,7 @@ import {
 import MovieCard from "../components/movies/MovieCard";
 import { getTmdbImage } from "../utils/tmdbImage";
 import { useWatchlist } from "../context/WatchlistContext";
-import { usePreferences } from "../context/PreferencesContext"
+import { usePreferences } from "../context/PreferencesContext";
 const FILTERS = ["All", "Anime", "Movies", "TV Series"];
 const SORT_OPTIONS = ["Recently Added", "Highest Rated", "A-Z"];
 const PAGE_SIZE = 12;
@@ -39,22 +40,22 @@ function sortItems(items, sortBy) {
   }
   if (sortBy === "A-Z") {
     return list.sort((a, b) =>
-      (a.title || a.name).localeCompare(b.title || b.name)
+      (a.title || a.name).localeCompare(b.title || b.name),
     );
   }
   return list.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
 }
 
 function Watchlist() {
-  const { items } = useWatchlist();
+  const { items, loading } = useWatchlist();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get("page") || 1);
   const { preferences } = usePreferences();
 
-const [activeFilter, setActiveFilter] = useState("All");
-const [sortBy, setSortBy] = useState(preferences.defaultSort);
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [sortBy, setSortBy] = useState(preferences.defaultSort);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
-const [viewMode, setViewMode] = useState(preferences.defaultView);
+  const [viewMode, setViewMode] = useState(preferences.defaultView);
 
   const goToPage = (nextPage) => {
     const next = new URLSearchParams(searchParams);
@@ -65,7 +66,7 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
 
   const filtered = sortItems(
     items.filter((item) => matchesFilter(item, activeFilter)),
-    sortBy
+    sortBy,
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -117,7 +118,7 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
                   className="fixed inset-0 z-10"
                   onClick={() => setSortMenuOpen(false)}
                 />
-                <div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                <div className="animate-pop origin-top-right absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                   {SORT_OPTIONS.map((option) => (
                     <button
                       key={option}
@@ -174,25 +175,33 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
 
       <div className="flex min-h-[60vh] flex-col">
         <div className="flex-1">
-          {items.length === 0 && (
+          {loading ? (
+            <div className="mt-16 flex justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+            </div>
+          ) : items.length === 0 ? (
             <div className="mt-16 flex flex-col items-center text-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/5">
                 <IoBookmarkOutline className="h-10 w-10 text-purple-400" />
               </div>
+
               <h2 className="mt-5 text-xl font-bold text-white">
                 Your watchlist is empty
               </h2>
-              <p className="mt-2 text-sm text-gray-400">
-                Titles you add will show up here.
+
+              <p className="mt-2 max-w-md text-gray-400">
+                Start adding movies and shows to your watchlist to keep track of
+                what you want to watch.
               </p>
+
               <Link
                 to="/explore"
-                className="mt-5 rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-6 py-2.5 text-sm font-semibold text-white"
+                className="mt-6 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 font-medium text-white transition hover:opacity-90"
               >
-                Explore Titles
+                Explore titles
               </Link>
             </div>
-          )}
+          ) : null}
 
           {items.length > 0 && pageItems.length === 0 && (
             <div className="mt-16 flex flex-col items-center text-center">
@@ -201,15 +210,31 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
           )}
 
           {pageItems.length > 0 && viewMode === "grid" && (
-            <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
-              {pageItems.map((movie) => (
-                <MovieCard
-                  key={`${movie.media_type}-${movie.id}`}
-                  movie={movie}
-                  size="sm"
-                />
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`grid-${activeFilter}-${sortBy}-${page}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5"
+              >
+                {pageItems.map((movie, index) => (
+                  <motion.div
+                    key={`${movie.media_type}-${movie.id}`}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: index * 0.04,
+                      ease: "easeOut",
+                    }}
+                  >
+                    <MovieCard movie={movie} size="sm" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           )}
 
           {pageItems.length > 0 && viewMode === "list" && (
@@ -221,8 +246,11 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
                 const poster = getTmdbImage(item.poster_path, "w154");
 
                 return (
-                  <div
+                  <motion.div
                     key={`${item.media_type}-${item.id}`}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                     className="flex items-center gap-4 rounded-xl border border-white/10 bg-[#0B0F1A] p-3"
                   >
                     {poster ? (
@@ -236,7 +264,9 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
                     )}
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-white">{title}</p>
+                      <p className="truncate font-semibold text-white">
+                        {title}
+                      </p>
                       <p className="text-sm text-gray-400">
                         {year} •{" "}
                         {item.media_type === "tv" ? "TV Series" : "Movies"}
@@ -246,7 +276,7 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
                     <span className="flex items-center gap-1 text-sm text-amber-400">
                       ★ {item.vote_average?.toFixed(1)}
                     </span>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -260,41 +290,52 @@ const [viewMode, setViewMode] = useState(preferences.defaultView);
             </p>
 
             <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
-              <button
+              <motion.button
                 type="button"
                 onClick={() => goToPage(page - 1)}
                 disabled={page <= 1}
                 aria-label="Previous page"
+                whileHover={page > 1 ? { scale: 1.06 } : undefined}
+                whileTap={page > 1 ? { scale: 0.94 } : undefined}
+                transition={{ duration: 0.15 }}
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#477DF7]/70 text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <IoChevronBack className="h-4 w-4" />
-              </button>
+              </motion.button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-                <button
-                  key={num}
-                  type="button"
-                  onClick={() => goToPage(num)}
-                  aria-current={num === page ? "page" : undefined}
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold ${
-                    num === page
-                      ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                      : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
-                  }`}
-                >
-                  {num}
-                </button>
-              ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (num) => (
+                  <motion.button
+                    key={num}
+                    type="button"
+                    onClick={() => goToPage(num)}
+                    aria-current={num === page ? "page" : undefined}
+                    whileHover={{ scale: 1.06 }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={{ duration: 0.15 }}
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold ${
+                      num === page
+                        ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                        : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
+                    }`}
+                  >
+                    {num}
+                  </motion.button>
+                ),
+              )}
 
-              <button
+              <motion.button
                 type="button"
                 onClick={() => goToPage(page + 1)}
                 disabled={page >= totalPages}
                 aria-label="Next page"
+                whileHover={page < totalPages ? { scale: 1.06 } : undefined}
+                whileTap={page < totalPages ? { scale: 0.94 } : undefined}
+                transition={{ duration: 0.15 }}
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#477DF7]/70 text-gray-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <IoChevronForward className="h-4 w-4" />
-              </button>
+              </motion.button>
             </div>
           </div>
         )}

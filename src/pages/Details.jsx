@@ -1,12 +1,14 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-
+import { useAuth } from "../context/AuthContext";
 import {
   IoHeart,
   IoHeartOutline,
   IoShareSocialOutline,
   IoEllipsisHorizontal,
   IoPlay,
+  IoCheckmark,
   IoCheckmarkCircleOutline,
   IoGlobeOutline,
   IoLocationOutline,
@@ -124,6 +126,7 @@ function Details() {
   const { isFavorited, toggleFavorite, getRating, setRating } = useFavorites();
 
   const { addNotification } = useNotifications();
+  const { isLoggedIn } = useAuth();
 
   // ============================================================
   // STATE — TITLE DATA
@@ -682,6 +685,11 @@ function Details() {
   // ============================================================
 
   const handleFavoriteClick = () => {
+    if (!isLoggedIn) {
+      showToast("Log in to rate titles.");
+      return;
+    }
+
     if (myRating > 0) {
       setRating(item, 0);
       addNotification({
@@ -689,6 +697,7 @@ function Details() {
         message: title,
         image: poster,
         link: `/${mediaType}/${data.id}`,
+        dedupeKey: `rating-removed-${mediaType}-${data.id}`,
       });
       showToast("Rating removed");
       return;
@@ -696,7 +705,6 @@ function Details() {
 
     if (!inWatchlist) {
       showToast("Add to your watchlist first to rate this title.");
-
       return;
     }
 
@@ -708,14 +716,29 @@ function Details() {
   // ============================================================
 
   const handleWatchlistClick = () => {
+    if (!isLoggedIn) {
+      showToast("You need to log in to add titles to your watchlist.");
+      return;
+    }
+
     const wasInWatchlist = inWatchlist;
+
     toggleWatchlist(item);
+
+    if (wasInWatchlist && myRating > 0) {
+      setRating(item, 0);
+    }
+
     addNotification({
       title: wasInWatchlist ? "Removed from Watchlist" : "Added to Watchlist",
       message: title,
       image: poster,
       link: `/${mediaType}/${data.id}`,
+      dedupeKey: `${
+        wasInWatchlist ? "removed-from-watchlist" : "added-to-watchlist"
+      }-${mediaType}-${data.id}`,
     });
+
     showToast(wasInWatchlist ? "Removed from Watchlist" : "Added to Watchlist");
   };
 
@@ -726,12 +749,15 @@ function Details() {
   const handleRate = (n) => {
     setRating(item, n);
     setRatingMenuOpen(false);
+
     addNotification({
       title: `Rated ${n}/10`,
       message: title,
       image: poster,
       link: `/${mediaType}/${data.id}`,
+      dedupeKey: `rated-${mediaType}-${data.id}-${n}`,
     });
+
     showToast(n > 0 ? `Rated ${n}/10` : "Rating removed");
   };
 
@@ -786,354 +812,346 @@ function Details() {
 
   return (
     <div className="px-8 pb-16">
-
-{/* ========================================================
+      {/* ========================================================
     HERO
 ======================================================== */}
 
-<div className="relative">
-  <div className="relative h-[520px] overflow-hidden rounded-2xl sm:h-96">
+      <div className="relative">
+        <div className="relative h-[520px] overflow-hidden rounded-2xl sm:h-96">
+          {backdrop ? (
+            <img
+              src={backdrop}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : poster ? (
+            <img
+              src={poster}
+              alt=""
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+            />
+          ) : (
+            <PosterFallback title={title} className="absolute inset-0" />
+          )}
 
-    {backdrop ? (
-      <img
-        src={backdrop}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-    ) : poster ? (
-      <img
-        src={poster}
-        alt=""
-        className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
-      />
-    ) : (
-      <PosterFallback title={title} className="absolute inset-0" />
-    )}
+          <div className="absolute inset-0 bg-linear-to-t from-[#080D17]/60 via-[#080D17]/40 to-black/30" />
 
-    <div className="absolute inset-0 bg-linear-to-t from-[#080D17]/60 via-[#080D17]/40 to-black/30" />
-
-    {/* ==================================================
+          {/* ==================================================
         BACK BUTTON
     ================================================== */}
 
-    <BackButton className="absolute left-3 top-3 sm:left-6 sm:top-6" />
+          <BackButton className="absolute left-3 top-3 sm:left-6 sm:top-6" />
 
-    {/* ==================================================
+          {/* ==================================================
         HERO ACTIONS
     ================================================== */}
 
-    <div className="absolute right-3 top-3 sm:right-6 sm:top-6">
-      <div className="flex items-start gap-3 sm:gap-6">
-
-        {/* ==============================================
+          <div className="absolute right-3 top-3 sm:right-6 sm:top-6">
+            <div className="flex items-start gap-3 sm:gap-6">
+              {/* ==============================================
             FAVORITE + RATING
         ============================================== */}
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={handleFavoriteClick}
-            className="flex flex-col items-center gap-1 text-[10px] font-medium text-white sm:gap-1.5 sm:text-xs"
-          >
-            <span
-              className={`flex h-9 w-9 items-center justify-center rounded-full border sm:h-11 sm:w-11 ${
-                myRating > 0 ? "border-red-500/60" : "border-white/30"
-              }`}
-            >
-              {myRating > 0 ? (
-                <IoHeart className="h-4 w-4 text-red-500 sm:h-5 sm:w-5" />
-              ) : (
-                <IoHeartOutline className="h-4 w-4 sm:h-5 sm:w-5" />
-              )}
-            </span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleFavoriteClick}
+                  className="flex flex-col items-center gap-1 text-[10px] font-medium text-white sm:gap-1.5 sm:text-xs"
+                >
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border sm:h-11 sm:w-11 ${
+                      myRating > 0 ? "border-red-500/60" : "border-white/30"
+                    }`}
+                  >
+                    {myRating > 0 ? (
+                      <IoHeart className="h-4 w-4 text-red-500 sm:h-5 sm:w-5" />
+                    ) : (
+                      <IoHeartOutline className="h-4 w-4 sm:h-5 sm:w-5" />
+                    )}
+                  </span>
 
-            {myRating > 0 ? `Rated ${myRating}/10` : "Favorite"}
-          </button>
+                  {myRating > 0 ? `Rated ${myRating}/10` : "Favorite"}
+                </button>
 
-          {/* Rating popup */}
-          {ratingMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setRatingMenuOpen(false)}
-              />
+                {/* Rating popup */}
+                {ratingMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setRatingMenuOpen(false)}
+                    />
 
-              <div className="absolute right-0 top-12 z-20 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A]/60 px-4 py-3 shadow-xl shadow-black/40 sm:top-14">
-                <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Your Rating
-                </p>
+                    <div className="animate-pop origin-top-right absolute right-0 top-12 z-20 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A]/60 px-4 py-3 shadow-xl shadow-black/40 sm:top-14">
+                      <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Your Rating
+                      </p>
 
-                <RatingHearts
-                  rating={myRating}
-                  onRate={handleRate}
-                />
+                      <RatingHearts
+                        rating={myRating}
+                        onRate={handleRate}
+                        size="lg"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-            </>
-          )}
-        </div>
 
-        {/* ==============================================
+              {/* ==============================================
             SHARE
         ============================================== */}
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={handleNativeShare}
-            className="flex flex-col items-center gap-1 text-[10px] font-medium text-white sm:gap-1.5 sm:text-xs"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 sm:h-11 sm:w-11">
-              <IoShareSocialOutline className="h-4 w-4 sm:h-5 sm:w-5" />
-            </span>
-
-            Share
-          </button>
-
-          {shareMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShareMenuOpen(false)}
-              />
-
-              <div className="absolute right-0 top-12 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40 sm:top-14">
-                <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    title,
-                  )}&url=${encodeURIComponent(shareUrl)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                >
-                  <FaXTwitter className="h-4 w-4" />
-                  Share on X
-                </a>
-
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(
-                    `${title} ${shareUrl}`,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                >
-                  <FaWhatsapp className="h-4 w-4" />
-                  Share on WhatsApp
-                </a>
-
-                <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                    shareUrl,
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                >
-                  <FaFacebook className="h-4 w-4" />
-                  Share on Facebook
-                </a>
-
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    handleCopyLink(shareUrl);
-                    setShareMenuOpen(false);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                  onClick={handleNativeShare}
+                  className="flex flex-col items-center gap-1 text-[10px] font-medium text-white sm:gap-1.5 sm:text-xs"
                 >
-                  <IoCopyOutline className="h-4 w-4" />
-                  Copy Link
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 sm:h-11 sm:w-11">
+                    <IoShareSocialOutline className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </span>
+                  Share
                 </button>
-              </div>
-            </>
-          )}
-        </div>
 
-        {/* ==============================================
+                {shareMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShareMenuOpen(false)}
+                    />
+
+                    <div className="animate-pop origin-top-right absolute right-0 top-12 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40 sm:top-14">
+                      <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                          title,
+                        )}&url=${encodeURIComponent(shareUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <FaXTwitter className="h-4 w-4" />
+                        Share on X
+                      </a>
+
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `${title} ${shareUrl}`,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <FaWhatsapp className="h-4 w-4" />
+                        Share on WhatsApp
+                      </a>
+
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                          shareUrl,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <FaFacebook className="h-4 w-4" />
+                        Share on Facebook
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCopyLink(shareUrl);
+                          setShareMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <IoCopyOutline className="h-4 w-4" />
+                        Copy Link
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* ==============================================
             MORE
         ============================================== */}
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setMoreMenuOpen((value) => !value)}
-            className="flex flex-col items-center gap-1 text-[10px] font-medium text-white sm:gap-1.5 sm:text-xs"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 sm:h-11 sm:w-11">
-              <IoEllipsisHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
-            </span>
-
-            More
-          </button>
-
-          {moreMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setMoreMenuOpen(false)}
-              />
-
-              <div className="absolute right-0 top-12 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40 sm:top-14">
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    handleCopyLink(shareUrl);
-                    setMoreMenuOpen(false);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                  onClick={() => setMoreMenuOpen((value) => !value)}
+                  className="flex flex-col items-center gap-1 text-[10px] font-medium text-white sm:gap-1.5 sm:text-xs"
                 >
-                  <IoCopyOutline className="h-4 w-4" />
-                  Copy Link
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 sm:h-11 sm:w-11">
+                    <IoEllipsisHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </span>
+                  More
                 </button>
 
-                <a
-                  href={tmdbUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
-                >
-                  <IoOpenOutline className="h-4 w-4" />
-                  View on TMDB
-                </a>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+                {moreMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setMoreMenuOpen(false)}
+                    />
 
-    {/* ==================================================
+                    <div className="animate-pop origin-top-right absolute right-0 top-12 z-20 w-52 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40 sm:top-14">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleCopyLink(shareUrl);
+                          setMoreMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <IoCopyOutline className="h-4 w-4" />
+                        Copy Link
+                      </button>
+
+                      <a
+                        href={tmdbUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-200 hover:bg-white/5 hover:text-white"
+                      >
+                        <IoOpenOutline className="h-4 w-4" />
+                        View on TMDB
+                      </a>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ==================================================
         HERO CONTENT
     ================================================== */}
 
-    <div className="absolute inset-x-4 bottom-4 flex flex-col gap-4 sm:inset-x-6 sm:bottom-6 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:pl-42">
+          <div className="absolute inset-x-4 bottom-4 flex flex-col gap-4 sm:inset-x-6 sm:bottom-6 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:pl-42">
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold text-white sm:text-2xl sm:text-3xl">
+                {title}
+              </h1>
 
-      <div className="min-w-0">
+              {/* Genres */}
 
-        <h1 className="text-xl font-bold text-white sm:text-2xl sm:text-3xl">
-          {title}
-        </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
+                {data.genres?.slice(0, 3).map((genre) => {
+                  const color = getGenreColor(genre.name);
 
-        {/* Genres */}
+                  return (
+                    <span
+                      key={genre.id}
+                      className="rounded-full px-3 py-1 text-xs font-medium text-white backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-sm"
+                      style={{
+                        backgroundColor: hexToRgba(color, 0.3),
+                        border: `1px solid ${hexToRgba(color, 0.8)}`,
+                      }}
+                    >
+                      {genre.name}
+                    </span>
+                  );
+                })}
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
-          {data.genres?.slice(0, 3).map((genre) => {
-            const color = getGenreColor(genre.name);
+                {/* Year */}
 
-            return (
-              <span
-                key={genre.id}
-                className="rounded-full px-3 py-1 text-xs font-medium text-white backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-sm"
-                style={{
-                  backgroundColor: hexToRgba(color, 0.3),
-                  border: `1px solid ${hexToRgba(color, 0.8)}`,
-                }}
+                {startYear && (
+                  <span className="text-xs text-gray-300 sm:text-sm">
+                    • {startYear}
+                    {mediaType === "tv" && (
+                      <> - {data.status === "Ended" ? endYear : "Ongoing"}</>
+                    )}
+                  </span>
+                )}
+              </div>
+
+              {/* Rating / Season / Runtime */}
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3 sm:gap-3">
+                {rating && (
+                  <span className="flex items-center gap-1.5 rounded-xl bg-black/50 py-1.5 pl-1.5 pr-3 text-xs font-bold text-white sm:gap-2 sm:rounded-2xl sm:py-2 sm:pl-2 sm:pr-4 sm:text-sm">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 sm:h-6 sm:w-6">
+                      <IoStar className="h-3 w-3 text-black sm:h-3.5 sm:w-3.5" />
+                    </span>
+
+                    {rating}
+
+                    <span className="font-medium text-gray-300">IMDB</span>
+                  </span>
+                )}
+
+                {mediaType === "tv" && data.number_of_seasons && (
+                  <span className="flex items-center gap-1.5 rounded-xl bg-black/50 px-3 py-1.5 text-xs font-bold text-white sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-2 sm:text-sm">
+                    <IoFilm className="h-3.5 w-3.5 text-[#6B6DF6] sm:h-4 sm:w-4" />
+                    {data.number_of_seasons} Season
+                    {data.number_of_seasons > 1 ? "s" : ""}
+                  </span>
+                )}
+
+                {runtime && (
+                  <span className="flex items-center gap-1.5 rounded-xl bg-black/50 px-3 py-1.5 text-xs font-bold text-white sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-2 sm:text-sm">
+                    <IoTime className="h-3.5 w-3.5 text-[#6B6DF6] sm:h-4 sm:w-4" />
+
+                    {runtime}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* HERO BUTTONS */}
+            <div className="flex w-full gap-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end sm:gap-2">
+              {/* Watchlist */}
+              <button
+                type="button"
+                onClick={handleWatchlistClick}
+                className={`flex-1 rounded-full border px-4 py-2 text-xs font-semibold text-white transition sm:flex-none sm:px-5 sm:py-2.5 sm:text-sm ${
+                  inWatchlist
+                    ? "border-transparent bg-linear-to-b from-[#A855F7] to-[#3B82F6]"
+                    : "border-[#A855F7] bg-transparent hover:bg-[#A855F7]/10"
+                }`}
               >
-                {genre.name}
-              </span>
-            );
-          })}
+                {inWatchlist ? (
+                  <span className="flex items-center justify-center gap-1.5">
+                    <IoCheckmark className="h-4 w-4" />
+                    In Watchlist
+                  </span>
+                ) : (
+                  "+ Add to Watchlist"
+                )}
+              </button>
 
-          {/* Year */}
-
-          {startYear && (
-            <span className="text-xs text-gray-300 sm:text-sm">
-              • {startYear}
-
-              {mediaType === "tv" && (
-                <>
-                  {" "}
-                  - {data.status === "Ended" ? endYear : "Ongoing"}
-                </>
-              )}
-            </span>
-          )}
+              {/* Trailer */}
+              <button
+                type="button"
+                onClick={() => mainTrailer && setActiveVideo(mainTrailer)}
+                disabled={!mainTrailer}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm"
+              >
+                <IoPlay className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Watch Trailer
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Rating / Season / Runtime */}
-
-        <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3 sm:gap-3">
-          {rating && (
-            <span className="flex items-center gap-1.5 rounded-xl bg-black/50 py-1.5 pl-1.5 pr-3 text-xs font-bold text-white sm:gap-2 sm:rounded-2xl sm:py-2 sm:pl-2 sm:pr-4 sm:text-sm">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 sm:h-6 sm:w-6">
-                <IoStar className="h-3 w-3 text-black sm:h-3.5 sm:w-3.5" />
-              </span>
-
-              {rating}
-
-              <span className="font-medium text-gray-300">
-                IMDB
-              </span>
-            </span>
-          )}
-
-          {mediaType === "tv" && data.number_of_seasons && (
-            <span className="flex items-center gap-1.5 rounded-xl bg-black/50 px-3 py-1.5 text-xs font-bold text-white sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-2 sm:text-sm">
-              <IoFilm className="h-3.5 w-3.5 text-[#6B6DF6] sm:h-4 sm:w-4" />
-
-              {data.number_of_seasons} Season
-              {data.number_of_seasons > 1 ? "s" : ""}
-            </span>
-          )}
-
-          {runtime && (
-            <span className="flex items-center gap-1.5 rounded-xl bg-black/50 px-3 py-1.5 text-xs font-bold text-white sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-2 sm:text-sm">
-              <IoTime className="h-3.5 w-3.5 text-[#6B6DF6] sm:h-4 sm:w-4" />
-
-              {runtime}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ==================================================
-          HERO BUTTONS
-      ================================================== */}
-
-      <div className="flex w-full gap-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end sm:gap-2">
-
-        <button
-          type="button"
-          onClick={handleWatchlistClick}
-          className={`flex-1 rounded-full border px-4 py-2 text-xs font-semibold text-white transition sm:flex-none sm:px-5 sm:py-2.5 sm:text-sm ${
-            inWatchlist
-              ? "border-transparent bg-linear-to-b from-[#A855F7] to-[#3B82F6]"
-              : "border-[#A855F7] bg-transparent hover:bg-[#A855F7]/10"
-          }`}
-        >
-          {inWatchlist ? "In Watchlist" : "+ Add to Watchlist"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => mainTrailer && setActiveVideo(mainTrailer)}
-          disabled={!mainTrailer}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-linear-to-b from-[#A855F7] to-[#3B82F6] px-4 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:gap-2 sm:px-5 sm:py-2.5 sm:text-sm"
-        >
-          <IoPlay className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          Watch Trailer
-        </button>
-      </div>
-    </div>
-  </div>
-
-  {/* ======================================================
+        {/* ======================================================
       POSTER
   ====================================================== */}
 
-  {poster ? (
-    <img
-      src={poster}
-      alt={title}
-      className="absolute -bottom-8 left-6 z-10 hidden h-52 w-36 rounded-2xl object-cover shadow-2xl sm:block"
-    />
-  ) : (
-    <PosterFallback
-      title={title}
-      className="absolute -bottom-8 left-6 z-10 hidden h-52 w-36 rounded-2xl shadow-2xl sm:flex"
-    />
-  )}
-</div>
+        {poster ? (
+          <img
+            src={poster}
+            alt={title}
+            className="absolute -bottom-8 left-6 z-10 hidden h-52 w-36 rounded-2xl object-cover shadow-2xl sm:block"
+          />
+        ) : (
+          <PosterFallback
+            title={title}
+            className="absolute -bottom-8 left-6 z-10 hidden h-52 w-36 rounded-2xl shadow-2xl sm:flex"
+          />
+        )}
+      </div>
 
       {/* ========================================================
           INFORMATION GRID
@@ -1325,7 +1343,73 @@ function Details() {
       SEASON SELECTOR
   ================================================== */}
 
-          <div className="mb-4"> <div className="flex items-center gap-2"> {/* Previous season */} <button type="button" onClick={() => scrollSeasons("left")} disabled={!canScrollSeasonLeft} aria-label="Scroll seasons left" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#26365F] bg-[#080D17] text-gray-400 transition-all duration-200 hover:border-[#477DF7]/70 hover:text-white disabled:pointer-events-none disabled:opacity-20 sm:h-9 sm:w-9" > <IoChevronBack className="h-4 w-4" /> </button> {/* Season pills */} <div ref={seasonScrollRef} className="min-w-0 flex-1 overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch", }} > <div className="flex w-max gap-2 py-1"> {data.seasons.map((season) => ( <button key={season.id} type="button" onClick={() => setSelectedSeason(season.season_number) } className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${ selectedSeason === season.season_number ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white shadow-[0_4px_14px_rgba(59,130,246,0.18)]" : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10" }`} > {season.name} </button> ))} </div> </div> {/* Next season */} <button type="button" onClick={() => scrollSeasons("right")} disabled={!canScrollSeasonRight} aria-label="Scroll seasons right" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#26365F] bg-[#080D17] text-gray-400 transition-all duration-200 hover:border-[#477DF7]/70 hover:text-white disabled:pointer-events-none disabled:opacity-20 sm:h-9 sm:w-9" > <IoChevronForward className="h-4 w-4" /> </button> </div> {/* Season scroll indicator */} <div className="mt-2 flex justify-center px-1"> <div className="relative h-1 w-full max-w-[260px] overflow-hidden rounded-full bg-[#17233D]"> <div className="absolute left-0 top-0 h-full rounded-full bg-linear-to-r from-[#A855F7] to-[#3B82F6] transition-[width] duration-150 ease-out" style={{ width: `${Math.max( seasonScrollProgress > 0 ? 8 : 18, seasonScrollProgress, )}%`, }} /> </div> </div> </div>
+          <div className="mb-4">
+            {" "}
+            <div className="flex items-center gap-2">
+              {" "}
+              {/* Previous season */}{" "}
+              <button
+                type="button"
+                onClick={() => scrollSeasons("left")}
+                disabled={!canScrollSeasonLeft}
+                aria-label="Scroll seasons left"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#26365F] bg-[#080D17] text-gray-400 transition-all duration-200 hover:border-[#477DF7]/70 hover:text-white disabled:pointer-events-none disabled:opacity-20 sm:h-9 sm:w-9"
+              >
+                {" "}
+                <IoChevronBack className="h-4 w-4" />{" "}
+              </button>{" "}
+              {/* Season pills */}{" "}
+              <div
+                ref={seasonScrollRef}
+                className="min-w-0 flex-1 overflow-x-auto"
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {" "}
+                <div className="flex w-max gap-2 py-1">
+                  {" "}
+                  {data.seasons.map((season) => (
+                    <button
+                      key={season.id}
+                      type="button"
+                      onClick={() => setSelectedSeason(season.season_number)}
+                      className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${selectedSeason === season.season_number ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white shadow-[0_4px_14px_rgba(59,130,246,0.18)]" : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"}`}
+                    >
+                      {" "}
+                      {season.name}{" "}
+                    </button>
+                  ))}{" "}
+                </div>{" "}
+              </div>{" "}
+              {/* Next season */}{" "}
+              <button
+                type="button"
+                onClick={() => scrollSeasons("right")}
+                disabled={!canScrollSeasonRight}
+                aria-label="Scroll seasons right"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#26365F] bg-[#080D17] text-gray-400 transition-all duration-200 hover:border-[#477DF7]/70 hover:text-white disabled:pointer-events-none disabled:opacity-20 sm:h-9 sm:w-9"
+              >
+                {" "}
+                <IoChevronForward className="h-4 w-4" />{" "}
+              </button>{" "}
+            </div>{" "}
+            {/* Season scroll indicator */}{" "}
+            <div className="mt-2 flex justify-center px-1">
+              {" "}
+              <div className="relative h-1 w-full max-w-[260px] overflow-hidden rounded-full bg-[#17233D]">
+                {" "}
+                <div
+                  className="absolute left-0 top-0 h-full rounded-full bg-linear-to-r from-[#A855F7] to-[#3B82F6] transition-[width] duration-150 ease-out"
+                  style={{
+                    width: `${Math.max(seasonScrollProgress > 0 ? 8 : 18, seasonScrollProgress)}%`,
+                  }}
+                />{" "}
+              </div>{" "}
+            </div>{" "}
+          </div>
 
           {/* ==================================================
                 EPISODE LOADING STATE
@@ -1798,8 +1882,6 @@ function Details() {
               );
             })}
           </div>
-
-        
         </section>
       )}
       {/* ========================================================
@@ -1810,7 +1892,7 @@ function Details() {
         <MovieSection
           title="You May Also Like"
           movies={recommended}
-           showChevron={false}
+          showChevron={false}
           viewAllPath="/explore"
           autoScroll
         />
@@ -1819,100 +1901,137 @@ function Details() {
       {/* ========================================================
           REVIEW MODAL
       ======================================================== */}
-      {activeReview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
-          <div
-            className="absolute inset-0"
-            onClick={() => setActiveReview(null)}
-          />
-          <div className="relative max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-6">
-            <button
-              type="button"
+
+      <AnimatePresence>
+        {activeReview && (
+          <motion.div
+            key="review-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          >
+            <div
+              className="absolute inset-0"
               onClick={() => setActiveReview(null)}
-              aria-label="Close review"
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-6"
             >
-              <IoClose className="h-4 w-4" />
-            </button>
+              <button
+                type="button"
+                onClick={() => setActiveReview(null)}
+                aria-label="Close review"
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <IoClose className="h-4 w-4" />
+              </button>
 
-            <div className="flex items-center gap-3 pr-10">
-              {activeReview.author_details?.avatar_path ? (
-                <img
-                  src={
-                    activeReview.author_details.avatar_path.startsWith("/http")
-                      ? activeReview.author_details.avatar_path.slice(1)
-                      : getTmdbImage(
-                          activeReview.author_details.avatar_path,
-                          "w92",
-                        )
-                  }
-                  alt=""
-                  className="h-12 w-12 shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg font-bold text-gray-300">
-                  {activeReview.author.charAt(0).toUpperCase()}
+              <div className="flex items-center gap-3 pr-10">
+                {activeReview.author_details?.avatar_path ? (
+                  <img
+                    src={
+                      activeReview.author_details.avatar_path.startsWith(
+                        "/http",
+                      )
+                        ? activeReview.author_details.avatar_path.slice(1)
+                        : getTmdbImage(
+                            activeReview.author_details.avatar_path,
+                            "w92",
+                          )
+                    }
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg font-bold text-gray-300">
+                    {activeReview.author.charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                <div>
+                  <p className="font-bold text-white">{activeReview.author}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(activeReview.created_at).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      },
+                    )}
+                  </p>
                 </div>
-              )}
-              <div>
-                <p className="font-bold text-white">{activeReview.author}</p>
-                <p className="text-xs text-gray-500">
-                  {new Date(activeReview.created_at).toLocaleDateString(
-                    "en-US",
-                    { year: "numeric", month: "short", day: "numeric" },
-                  )}
-                </p>
-              </div>
-              {activeReview.author_details?.rating && (
-                <span className="ml-auto flex items-center gap-1 text-sm font-bold text-amber-400">
-                  ★ {activeReview.author_details.rating}/10
-                </span>
-              )}
-            </div>
 
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-gray-300">
-              {activeReview.content}
-            </p>
-          </div>
-        </div>
-      )}
+                {activeReview.author_details?.rating && (
+                  <span className="ml-auto flex items-center gap-1 text-sm font-bold text-amber-400">
+                    ★ {activeReview.author_details.rating}/10
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-gray-300">
+                {activeReview.content}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ========================================================
           VIDEO MODAL
       ======================================================== */}
 
-      {activeVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
-          {/* Modal Backdrop */}
-
-          <div
-            className="absolute inset-0"
-            onClick={() => setActiveVideo(null)}
-          />
-
-          {/* Modal Content */}
-
-          <div className="relative w-full max-w-3xl">
-            <button
-              type="button"
+      <AnimatePresence>
+        {activeVideo && (
+          <motion.div
+            key="video-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          >
+            <div
+              className="absolute inset-0"
               onClick={() => setActiveVideo(null)}
-              aria-label="Close video"
-              className="absolute -top-12 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-            >
-              <IoClose className="h-5 w-5" />
-            </button>
+            />
 
-            <div className="aspect-video w-full overflow-hidden rounded-2xl">
-              <iframe
-                src={`https://www.youtube.com/embed/${activeVideo.key}?autoplay=1`}
-                title={activeVideo.name}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="h-full w-full"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-full max-w-3xl"
+            >
+              <button
+                type="button"
+                onClick={() => setActiveVideo(null)}
+                aria-label="Close video"
+                className="absolute -top-12 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              >
+                <IoClose className="h-5 w-5" />
+              </button>
+
+              <div className="aspect-video w-full overflow-hidden rounded-2xl">
+                <iframe
+                  src={`https://www.youtube.com/embed/${activeVideo.key}?autoplay=1`}
+                  title={activeVideo.name}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ========================================================
           TOAST

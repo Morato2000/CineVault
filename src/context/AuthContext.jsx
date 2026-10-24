@@ -1,30 +1,122 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../services/supabaseClient";
 
 const AuthContext = createContext(null);
-const STORAGE_KEY = "cinevault_auth";
+
+
+const sameUser = (a, b) =>
+  a?.id === b?.id && a?.email === b?.email;
+
 
 export function AuthProvider({ children }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEY) === "true";
-    } catch {
-      return false;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+
+useEffect(() => {
+  let mounted = true;
+
+  const loadSession = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (mounted) {
+      const nextUser = session?.user ?? null;
+
+      setUser((prevUser) =>
+        sameUser(prevUser, nextUser) ? prevUser : nextUser
+      );
+
+      setLoading(false);
+    }
+  };
+
+  loadSession();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (mounted) {
+      const nextUser = session?.user ?? null;
+
+      setUser((prevUser) =>
+        sameUser(prevUser, nextUser) ? prevUser : nextUser
+      );
     }
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, String(isLoggedIn));
-    } catch {
-      // localStorage unavailable — fail silently
-    }
-  }, [isLoggedIn]);
+  return () => {
+    mounted = false;
+    subscription.unsubscribe();
+  };
+}, []);
 
-  const login = () => setIsLoggedIn(true);
-  const logout = () => setIsLoggedIn(false);
+
+  const signUp = async (email, password, username) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username,
+        },
+      },
+    });
+
+    return { data, error };
+  };
+  const updatePassword = async (newPassword) => {
+    return await supabase.auth.updateUser({
+      password: newPassword,
+    });
+  };
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    return { data, error };
+  };
+const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin,
+    },
+  });
+
+  return { data, error };
+};
+
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return { error };
+    }
+
+    setUser(null);
+
+    return { error: null };
+  };
+
+  const isLoggedIn = !!user;
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoggedIn,
+        loading,
+        signUp,
+        login,
+        logout,
+        updatePassword,
+        signInWithGoogle,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -32,8 +124,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
   return context;
 }

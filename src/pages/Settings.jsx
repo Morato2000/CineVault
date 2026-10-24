@@ -1,3 +1,5 @@
+import { supabase } from "../services/supabaseClient";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
@@ -25,6 +27,7 @@ import {
   IoDesktopOutline,
   IoSunnyOutline,
   IoMoonOutline,
+  IoMailOutline,
   IoGrid,
   IoList,
 } from "react-icons/io5";
@@ -48,6 +51,7 @@ import setIconPp from "../assets/icons/set-icon-pp.svg";
 import setIconProfile from "../assets/icons/set-icon-profile.svg";
 import setIconTheme from "../assets/icons/set-icon-theme.svg";
 import setIconVersion from "../assets/icons/set-icon-version.svg";
+import Avatar from "../components/common/Avatar";
 import { useProfile } from "../context/ProfileContext";
 import { usePreferences } from "../context/PreferencesContext";
 import { useWatchlist } from "../context/WatchlistContext";
@@ -306,6 +310,7 @@ function LinkRow({
 
 function ConfirmDialog({
   open,
+  disabled = false,
   title,
   description,
   confirmLabel,
@@ -313,35 +318,62 @@ function ConfirmDialog({
   onCancel,
   danger,
 }) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
-      <div className="w-full max-w-sm rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-6">
-        <h3 className="text-lg font-bold text-white">{title}</h3>
-        <p className="mt-2 text-sm text-gray-400">{description}</p>
-        <div className="mt-5 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-full px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/10"
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="confirm-dialog"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+            className="w-full max-w-sm rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-6"
           >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className={`rounded-full px-4 py-2 text-sm font-semibold text-white ${
-              danger
-                ? "bg-red-600 hover:bg-red-500"
-                : "bg-linear-to-b from-[#A855F7] to-[#3B82F6]"
-            }`}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+            <h3
+              id="confirm-dialog-title"
+              className="text-lg font-bold text-white"
+            >
+              {title}
+            </h3>
+
+            <div className="mt-2 text-sm text-gray-400">{description}</div>
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="rounded-full px-4 py-2 text-sm font-semibold text-gray-300 hover:bg-white/10"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={onConfirm}
+                disabled={disabled}
+                className={`rounded-full px-4 py-2 text-sm font-semibold text-white ${
+                  danger
+                    ? "bg-red-600 hover:bg-red-500"
+                    : "bg-linear-to-b from-[#A855F7] to-[#3B82F6]"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                {disabled ? "Deleting..." : confirmLabel}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -383,20 +415,38 @@ async function getCroppedAvatar(imageSrc, croppedAreaPixels) {
 }
 
 function Settings() {
-  const { profile, updateProfile } = useProfile();
+  const {
+    profile,
+    providerAvatars,
+    updateProfile,
+    loading: profileLoading,
+  } = useProfile();
   const { preferences, updatePreference, updateNotification } =
     usePreferences();
   const { items, clearWatchlist, importWatchlist } = useWatchlist();
   const { clearFavorites } = useFavorites();
   const { addNotification } = useNotifications();
   const { logout } = useAuth();
+  const { updatePassword } = useAuth();
   const navigate = useNavigate();
-
+  const formInitialized = useRef(false);
   const [form, setForm] = useState({
     displayName: profile.displayName,
-    username: profile.username,
     email: profile.email,
   });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (!profileLoading && !formInitialized.current) {
+      setForm({
+        displayName: profile.displayName,
+        email: profile.email,
+      });
+
+      formInitialized.current = true;
+    }
+  }, [profile, profileLoading]);
+
   const [toastMessage, setToastMessage] = useState(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -406,11 +456,56 @@ function Settings() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [cropSaving, setCropSaving] = useState(false);
+  const [avatarSaving, setAvatarSaving] = useState(false);
   const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
   const cropImageUrlRef = useRef(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   const showToast = (msg) => setToastMessage(msg);
+
+  const handleChooseProviderAvatar = async (provider) => {
+    const avatarUrl = providerAvatars?.[provider];
+
+    if (!avatarUrl) {
+      showToast(
+        `${provider === "google" ? "Google" : "Discord"} photo is unavailable.`,
+      );
+      return;
+    }
+
+    setAvatarSaving(true);
+
+    try {
+      await updateProfile({ avatar: avatarUrl });
+
+      showToast(`${provider === "google" ? "Google" : "Discord"} photo saved.`);
+    } catch (error) {
+      console.error("Failed to update avatar:", error);
+      showToast(error?.message || "Couldn't update profile picture.");
+    } finally {
+      setAvatarSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      showToast("Password must be at least 6 characters.");
+      return;
+    }
+
+    try {
+      const { error } = await updatePassword(newPassword);
+      if (error) throw error;
+
+      setChangePasswordOpen(false);
+      setNewPassword("");
+      showToast("Password updated.");
+    } catch (err) {
+      showToast(err.message || "Failed to update password.");
+    }
+  };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
@@ -469,7 +564,7 @@ function Settings() {
         croppedAreaPixels,
       );
 
-      updateProfile({
+      await updateProfile({
         avatar: croppedAvatar,
       });
 
@@ -486,16 +581,44 @@ function Settings() {
 
       showToast("Profile picture updated.");
     } catch (error) {
-      console.error("Failed to crop avatar:", error);
-      showToast("Couldn't process that image. Please try again.");
+      console.error("Failed to save avatar:", error);
+      showToast(error?.message || "Couldn't save avatar. Please try again.");
     } finally {
       setCropSaving(false);
     }
   };
 
-  const handleSaveProfile = () => {
-    updateProfile(form);
-    showToast("Profile updated.");
+  const handleSaveProfile = async () => {
+    if (savingProfile) return;
+
+    setSavingProfile(true);
+
+    try {
+      const emailChanged =
+        form.email.trim().toLowerCase() !== profile.email.trim().toLowerCase();
+
+      await updateProfile({
+        displayName: form.displayName,
+      });
+
+      if (emailChanged) {
+        const { error } = await supabase.auth.updateUser({
+          email: form.email.trim(),
+        });
+
+        if (error) throw error;
+
+        showToast(
+          "Profile updated. Check your email for the confirmation link(s).",
+        );
+      } else {
+        showToast("Profile updated.");
+      }
+    } catch (err) {
+      showToast(err.message || "Failed to update profile. Please try again.");
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const handleExport = () => {
@@ -580,18 +703,46 @@ function Settings() {
     showToast("Watchlist cleared.");
   };
 
-  const handleDeleteAccount = () => {
-    clearWatchlist();
-    clearFavorites();
-    logout();
-    setConfirmDelete(false);
-    navigate("/");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deletingAccount) return;
+
+    setDeletingAccount(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-account");
+
+      if (error) throw error;
+
+      if (!data?.success) {
+        throw new Error("Account deletion was not confirmed.");
+      }
+
+      clearWatchlist();
+      clearFavorites();
+      setConfirmDelete(false);
+
+      const { error: logoutError } = await logout();
+
+      if (logoutError) {
+        console.error("Account deleted, but sign-out failed:", logoutError);
+      }
+
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      showToast("Unable to delete your account. Please try again.");
+    } finally {
+      setDeletingAccount(false);
+    }
   };
+
   useEffect(() => {
     return () => {
       if (cropImageUrlRef.current) {
         URL.revokeObjectURL(cropImageUrlRef.current);
-         cropImageUrlRef.current = null;
+        cropImageUrlRef.current = null;
       }
     };
   }, []);
@@ -613,11 +764,7 @@ function Settings() {
             action={
               <button
                 type="button"
-                onClick={() =>
-                  showToast(
-                    "Password changes aren't available yet — no account backend exists.",
-                  )
-                }
+                onClick={() => setChangePasswordOpen(true)}
                 className="flex items-center gap-1.5 rounded-full border border-indigo-500/40 px-3 py-2 text-xs font-semibold text-purple-300 hover:bg-white/5"
               >
                 <IoKeyOutline className="h-4 w-4" />
@@ -629,14 +776,13 @@ function Settings() {
           <div className="mt-4 flex flex-col gap-4 sm:flex-row">
             <div className="relative mx-auto h-24 w-24 shrink-0 sm:mx-0">
               <div className="h-24 w-24 overflow-hidden rounded-full bg-white/10">
-                {profile.avatar && (
-                  <img
-                    src={profile.avatar}
-                    alt="Avatar"
-                    className="h-full w-full object-cover"
-                  />
-                )}
+                <Avatar
+                  src={profile.avatar}
+                  name={profile.displayName}
+                  className="h-24 w-24"
+                />
               </div>
+
               <button
                 type="button"
                 onClick={() => avatarInputRef.current?.click()}
@@ -655,28 +801,68 @@ function Settings() {
 
             <div className="flex-1 space-y-3">
               <div>
+                <p className="mb-2 text-xs font-medium text-gray-400">
+                  Profile picture
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleChooseProviderAvatar("google")}
+                    disabled={!providerAvatars?.google || avatarSaving}
+                    className="flex items-center gap-2 rounded-full border border-indigo-500/40 px-3 py-2 text-xs font-semibold text-purple-300 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {providerAvatars?.google && (
+                      <img
+                        src={providerAvatars.google}
+                        alt=""
+                        className="h-5 w-5 rounded-full object-cover"
+                      />
+                    )}
+                    Use Google photo
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleChooseProviderAvatar("discord")}
+                    disabled={!providerAvatars?.discord || avatarSaving}
+                    className="flex items-center gap-2 rounded-full border border-indigo-500/40 px-3 py-2 text-xs font-semibold text-purple-300 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {providerAvatars?.discord && (
+                      <img
+                        src={providerAvatars.discord}
+                        alt=""
+                        className="h-5 w-5 rounded-full object-cover"
+                      />
+                    )}
+                    Use Discord photo
+                  </button>
+                </div>
+
+                <p className="mt-2 text-xs text-gray-500">
+                  Choose a linked account photo or upload your own.
+                </p>
+              </div>
+              <div>
                 <label className="mb-1 block text-xs font-medium text-gray-400">
                   Display Name
                 </label>
+
                 <input
                   value={form.displayName}
                   onChange={(e) =>
                     setForm({ ...form, displayName: e.target.value })
                   }
-                  className="w-full rounded-lg border border-white/10 bg-[#181F32] px-3 py-2 text-sm text-white outline-none focus:border-purple-500/50"
+                  disabled={savingProfile}
+                  className="w-full rounded-lg border border-white/10 bg-[#181F32] px-3 py-2 text-sm text-white outline-none focus:border-purple-500/50 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-400">
-                  Username
-                </label>
-                <input
-                  value={form.username}
-                  onChange={(e) =>
-                    setForm({ ...form, username: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-white/10 bg-[#181F32] px-3 py-2 text-sm text-white outline-none focus:border-purple-500/50"
-                />
+
+                <p className="mt-2 text-xs text-gray-500">
+                  Your handle
+                  <span className="ml-1 font-medium text-purple-400">
+                    @{profile.username || "generating..."}
+                  </span>
+                </p>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-400">
@@ -686,17 +872,19 @@ function Settings() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full rounded-lg border border-white/10 bg-[#181F32] px-3 py-2 text-sm text-white outline-none focus:border-purple-500/50"
+                  disabled={savingProfile}
+                  className="w-full rounded-lg border border-white/10 bg-[#181F32] px-3 py-2 text-sm text-white outline-none focus:border-purple-500/50 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleSaveProfile}
-                className="flex items-center gap-1.5 rounded-full border border-indigo-500/40 px-4 py-2 text-xs font-semibold text-purple-300 hover:bg-white/5"
+                disabled={savingProfile}
+                className="flex items-center gap-1.5 rounded-full border border-indigo-500/40 px-4 py-2 text-xs font-semibold text-purple-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <IoPencilOutline className="h-4 w-4" />
-                Save Changes
+                {savingProfile ? "Updating..." : "Save Changes"}
               </button>
             </div>
           </div>
@@ -821,11 +1009,23 @@ function Settings() {
                 }
               />
             </SettingsRow>
+            <SettingsRow
+              icon={IoMailOutline}
+              iconBg="#101234"
+              label="Email Notifications"
+              description="Get a daily digest of your updates by email"
+            >
+              <Toggle
+                checked={preferences.emailNotifications}
+                onChange={(v) => updatePreference("emailNotifications", v)}
+              />
+            </SettingsRow>
           </div>
 
           <p className="mt-3 text-xs text-gray-500">
-            CineVault doesn't send real notifications yet — this saves your
-            preference for when it does.
+            Email notifications are currently in testing and are not yet
+            available to all users. We'll enable this feature for everyone once
+            setup is complete.
           </p>
         </div>
 
@@ -919,8 +1119,9 @@ function Settings() {
                 Delete Account
               </p>
               <p className="text-xs text-gray-400">
-                Permanently deletes your locally stored data — watchlist,
-                favorites, and profile.
+                This will permanently delete your CineVault account and its
+                associated account data. You’ll be signed out, and this action
+                cannot be undone.
               </p>
             </div>
             <button
@@ -1015,12 +1216,35 @@ function Settings() {
 
       <ConfirmDialog
         open={confirmDelete}
+        disabled={deletingAccount}
         title="Delete Account"
         description="This clears your watchlist, favorites, and profile from this browser, and signs you out. This can't be undone."
         confirmLabel="Delete Everything"
         danger
         onConfirm={handleDeleteAccount}
         onCancel={() => setConfirmDelete(false)}
+      />
+
+      <ConfirmDialog
+        open={changePasswordOpen}
+        title="Change Password"
+        description={
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Enter new password"
+            aria-label="New password"
+            className="mt-2 w-full rounded-lg border border-white/10 bg-[#181F32] px-3 py-2 text-sm text-white outline-none focus:border-purple-500/50"
+          />
+        }
+        confirmLabel="Update Password"
+        onConfirm={handleChangePassword}
+        onCancel={() => {
+          setChangePasswordOpen(false);
+          setNewPassword("");
+        }}
       />
 
       <Toast

@@ -2,13 +2,17 @@ import { useState } from "react";
 import { IoHeart } from "react-icons/io5";
 
 function HeartDisplay({ value, size }) {
-  const dims = size === "sm" ? "h-3 w-3" : "h-5 w-5";
+  const dims =
+    size === "sm" ? "h-3 w-3" : size === "lg" ? "h-7 w-7" : "h-5 w-5";
 
   return (
     <span className="relative inline-block">
       <IoHeart className={`${dims} text-gray-300`} />
       {value > 0 && (
-        <span className="absolute inset-0 overflow-hidden" style={{ width: `${value * 100}%` }}>
+        <span
+          className="absolute inset-0 overflow-hidden"
+          style={{ width: `${value * 100}%` }}
+        >
           <IoHeart className={`${dims} text-red-500`} />
         </span>
       )}
@@ -31,7 +35,10 @@ function RatingHearts({ rating = 0, onRate = null, size = "md" }) {
         }
 
         return (
-          <span key={n} className="relative inline-block">
+          <span
+            key={n}
+            className="relative inline-block transition-transform hover:scale-125"
+          >
             <HeartDisplay value={fill} size={size} />
             <span className="absolute inset-0 flex">
               <button

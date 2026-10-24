@@ -67,7 +67,7 @@ function MovieCard({ movie, type, size = "md" }) {
   return (
     <Link
       to={`/${linkMediaType}/${movie.id}`}
-      className={`group relative block ${s.card} shrink-0 overflow-hidden ${s.radius} bg-[#111827]`}
+      className={`group relative block ${s.card} shrink-0 overflow-hidden ${s.radius} bg-[#111827] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-900/30`}
     >
       {poster ? (
         <img

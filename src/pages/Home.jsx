@@ -24,7 +24,7 @@ import {
   WatchlistWaitingCard,
   SaveWhatYouLoveCard,
 } from "../components/home/PromoCards";
-
+import AnimatedNumber from "../components/common/AnimatedNumber";
 import { useAuth } from "../context/AuthContext";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useFavorites } from "../context/FavoritesContext";
@@ -37,12 +37,13 @@ import {
   getPopularSeries,
   getUpcomingMovies,
   getTitleDetails,
-  getSeasonDetails,
   getNewReleases,
   addTvDetails,
 } from "../services/tmdb";
 
 import PosterFallback from "../components/common/PosterFallback";
+
+const DISCOVERY_THROTTLE_MS = 6 * 60 * 60 * 1000;
 
 // ============================================================
 // HOME STAT CARD
@@ -53,7 +54,19 @@ function HomeStatCard({ icon, value, label, sub, subColor = "text-gray-500" }) {
     <div className="rounded-2xl bg-[#0B0F1A] p-6 text-center">
       <div className="flex justify-center text-4xl">{icon}</div>
 
-      <p className="mt-4 text-3xl font-bold text-white">{value}</p>
+      <p className="mt-4 text-3xl font-bold text-white">
+        {typeof value === "number" ||
+        (typeof value === "string" &&
+          value.trim() !== "" &&
+          Number.isFinite(Number(value))) ? (
+          <AnimatedNumber
+            value={Number(value)}
+            decimals={String(value).includes(".") ? 1 : 0}
+          />
+        ) : (
+          value
+        )}
+      </p>
 
       <p className="mt-1 font-bold text-white">{label}</p>
 
@@ -132,13 +145,25 @@ function Home() {
   // AUTH & USER DATA
   // ============================================================
 
-  const { isLoggedIn } = useAuth();
-  const { items: watchlistItems } = useWatchlist();
-  const { items: favoriteItems } = useFavorites();
-  const { profile } = useProfile();
-  const { addNotification } = useNotifications();
-  const { preferences } = usePreferences();
+const { isLoggedIn, user } = useAuth();
 
+const {
+  items: watchlistItems,
+  loading: watchlistLoading,
+} = useWatchlist();
+
+const { items: favoriteItems } = useFavorites();
+const { profile } = useProfile();
+
+const {
+  addNotification,
+  loading: notificationsLoading,
+} = useNotifications();
+
+const {
+  preferences,
+  loading: preferencesLoading,
+} = usePreferences();
   // ============================================================
   // PUBLIC HOME DATA
   // ============================================================
@@ -206,11 +231,18 @@ function Home() {
   // SOURCE FOR RECOMMENDATIONS
   // ============================================================
 
-  const [likedSource] = useState(() =>
-    watchlistItems.length > 0
-      ? watchlistItems[Math.floor(Math.random() * watchlistItems.length)]
-      : null,
-  );
+  const [likedSource, setLikedSource] = useState(null);
+
+  useEffect(() => {
+    if (likedSource || watchlistItems.length === 0) {
+      return;
+    }
+
+    const source =
+      watchlistItems[Math.floor(Math.random() * watchlistItems.length)];
+
+    setLikedSource(source);
+  }, [watchlistItems, likedSource]);
 
   // ============================================================
   // FETCH PUBLIC HOME DATA
@@ -283,272 +315,294 @@ function Home() {
   // WATCHLIST NOTIFICATIONS
   // ============================================================
 
-  useEffect(() => {
-    if (!isLoggedIn || watchlistItems.length === 0) {
-      return;
+
+useEffect(() => {
+  if (
+    !isLoggedIn ||
+    !user?.id ||
+    watchlistLoading ||
+    notificationsLoading ||
+    preferencesLoading
+  ) {
+    return;
+  }
+
+  let cancelled = false;
+
+  const DAY = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const poster = (path) =>
+    path ? `https://image.tmdb.org/t/p/w342${path}` : null;
+
+  const longDate = (date) =>
+    date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+  // Store discovery timestamps per account and category.
+  // localStorage keeps the throttle across page reloads.
+  const canRunDiscovery = (category) => {
+    const key = `cinevault-discovery-${user.id}-${category}`;
+
+    try {
+      const lastRun = Number(localStorage.getItem(key) || 0);
+
+      if (now - lastRun < DISCOVERY_THROTTLE_MS) {
+        return false;
+      }
+
+      // Reserve the window immediately so effect reruns don't
+      // launch duplicate discovery requests.
+      localStorage.setItem(key, String(now));
+      return true;
+    } catch {
+      // Continue working if browser storage is unavailable.
+      return true;
     }
+  };
 
-    let cancelled = false;
+  async function checkWatchlistNotifications() {
+    const watchlistIds = new Set(
+      watchlistItems.map(
+        (item) => `${item.media_type}-${item.id}`
+      )
+    );
 
-    async function checkWatchlistNotifications() {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    // --------------------------------------------------------
+    // RELEASES AND RECENT EPISODES
+    // --------------------------------------------------------
 
-      // --------------------------------------------------------
-      // WATCHLIST RELEASE NOTIFICATIONS
-      // --------------------------------------------------------
-
+    if (preferences.notifications.upcomingMovies) {
       for (const item of watchlistItems) {
         if (cancelled) return;
 
-        const releaseDate = item.release_date || item.first_air_date;
-
-        if (!releaseDate) continue;
-
-        const date = new Date(releaseDate);
-
-        if (Number.isNaN(date.getTime())) continue;
-
-        date.setHours(0, 0, 0, 0);
-
         const title = item.title || item.name;
+        if (!title || !item.id) continue;
 
-        if (!title) continue;
+        const rawDate = item.release_date || item.first_air_date;
+        const releaseDate = rawDate ? new Date(rawDate) : null;
 
-        const formattedDate = date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-        // -------------------------------------------------------- //
-        // WATCHLIST RELEASE NOTIFICATIONS //
-        // --------------------------------------------------------
-        if (preferences.notifications.upcomingMovies) {
-          // Coming Soon
-          if (date > today) {
+        if (
+          releaseDate &&
+          !Number.isNaN(releaseDate.getTime())
+        ) {
+          releaseDate.setHours(0, 0, 0, 0);
+
+          const addedDate = new Date(item.addedAt || 0);
+          addedDate.setHours(0, 0, 0, 0);
+
+          const daysSinceRelease =
+            (today.getTime() - releaseDate.getTime()) / DAY;
+
+          if (releaseDate > today) {
             addNotification({
               title: `${title} is coming soon`,
-              message: `Release date: ${formattedDate}`,
-              image: item.poster_path
-                ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-                : null,
+              message: `Release date: ${longDate(releaseDate)}`,
+              image: poster(item.poster_path),
               link: `/${item.media_type}/${item.id}`,
               dedupeKey: `coming-soon-${item.media_type}-${item.id}`,
             });
-          }
-
-          // Now Available
-          if (date <= today) {
+          } else if (
+            daysSinceRelease >= 0 &&
+            daysSinceRelease <= 7 &&
+            releaseDate.getTime() > addedDate.getTime()
+          ) {
             addNotification({
               title: `${title} is now available`,
-              message: `Released on: ${formattedDate}`,
-              image: item.poster_path
-                ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-                : null,
+              message: `Released on: ${longDate(releaseDate)}`,
+              image: poster(item.poster_path),
               link: `/${item.media_type}/${item.id}`,
               dedupeKey: `now-available-${item.media_type}-${item.id}`,
             });
           }
         }
-        // ------------------------------------------------------
-        // NEW EPISODES
-        // ------------------------------------------------------
 
-        if (item.media_type !== "tv") {
-          continue;
-        }
-
-        if (!preferences.notifications.upcomingMovies) {
-          continue;
-        }
+        // Only inspect the latest aired episode for TV shows.
+        if (item.media_type !== "tv") continue;
 
         try {
           const details = await getTitleDetails("tv", item.id);
-          if (!details?.seasons?.length) {
-            continue;
-          }
 
-          const seasons = details.seasons.filter(
-            (season) => season.season_number > 0,
-          );
+          if (cancelled) return;
 
-          for (const season of seasons) {
-            if (cancelled) return;
+          const latestEpisode = details?.last_episode_to_air;
 
-            try {
-              const seasonDetails = await getSeasonDetails(
-                item.id,
-                season.season_number,
-              );
+          if (!latestEpisode?.air_date) continue;
 
-              if (!seasonDetails?.episodes?.length) {
-                continue;
-              }
+          const airDate = new Date(latestEpisode.air_date);
 
-              const airedEpisodes = seasonDetails.episodes.filter((episode) => {
-                if (!episode.air_date) {
-                  return false;
-                }
+          if (Number.isNaN(airDate.getTime())) continue;
 
-                const airDate = new Date(episode.air_date);
+          airDate.setHours(0, 0, 0, 0);
 
-                if (Number.isNaN(airDate.getTime())) {
-                  return false;
-                }
+          const daysSinceAir =
+            (today.getTime() - airDate.getTime()) / DAY;
 
-                airDate.setHours(0, 0, 0, 0);
+          // Ignore future episodes and episodes older than 14 days.
+          if (daysSinceAir < 0 || daysSinceAir > 14) continue;
 
-                return airDate <= today;
-              });
+          // Avoid calling an episode "new" if it aired before
+          // this show was added to the user's watchlist.
+          const addedDate = new Date(item.addedAt || 0);
+          addedDate.setHours(0, 0, 0, 0);
 
-              // Every episode gets its own dedupe key.
-              // This prevents multiple aired episodes from being
-              // collapsed into one notification.
-              airedEpisodes.forEach((episode) => {
-                if (!episode.episode_number) {
-                  return;
-                }
+          if (airDate.getTime() <= addedDate.getTime()) continue;
 
-                addNotification({
-                  title: `${title} — New episode available`,
-                  message: `Season ${season.season_number}, Episode ${episode.episode_number}: ${episode.name}`,
-                  image: item.poster_path
-                    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-                    : null,
-                  link: `/tv/${item.id}`,
-                  dedupeKey: `new-episode-${item.id}-s${season.season_number}e${episode.episode_number}`,
-                });
-              });
-            } catch (error) {
-              console.error(
-                `Failed to check season ${season.season_number} for ${title}:`,
-                error,
-              );
-            }
-          }
-        } catch (error) {
-          console.error(`Failed to check episodes for ${title}:`, error);
-        }
-      }
+          const seasonNumber = latestEpisode.season_number;
+          const episodeNumber = latestEpisode.episode_number;
 
-      if (cancelled) return;
+          if (seasonNumber == null || episodeNumber == null) continue;
 
-      // --------------------------------------------------------
-      // RECOMMENDATIONS
-      // --------------------------------------------------------
-
-      const watchlistIds = new Set(
-        watchlistItems.map((item) => `${item.media_type}-${item.id}`),
-      );
-
-      const source =
-        watchlistItems[Math.floor(Math.random() * watchlistItems.length)];
-
-      if (preferences.notifications.personalizedDiscoveries && source) {
-        try {
-          const sourceDetails = await getTitleDetails(
-            source.media_type,
-            source.id,
-          );
-
-          const recommendations = (
-            sourceDetails?.recommendations?.results || []
-          )
-            .filter(
-              (recommendation) =>
-                !watchlistIds.has(
-                  `${recommendation.media_type || source.media_type}-${recommendation.id}`,
-                ),
-            )
-            .slice(0, 2);
-
-          recommendations.forEach((recommendation) => {
-            const recommendedTitle =
-              recommendation.title || recommendation.name;
-
-            if (!recommendedTitle) {
-              return;
-            }
-
-            const recommendationMediaType =
-              recommendation.media_type || source.media_type;
-
-            addNotification({
-              title: `You might like ${recommendedTitle}`,
-              message: `Because ${source.title || source.name} is in your Watchlist`,
-              image: recommendation.poster_path
-                ? `https://image.tmdb.org/t/p/w342${recommendation.poster_path}`
-                : null,
-              link: `/${recommendationMediaType}/${recommendation.id}`,
-              dedupeKey: `recommendation-${recommendation.id}`,
-            });
+          addNotification({
+            title: `${title} — New episode available`,
+            message: `Season ${seasonNumber}, Episode ${episodeNumber}: ${
+              latestEpisode.name || "New episode"
+            }`,
+            image: poster(item.poster_path),
+            link: `/tv/${item.id}`,
+            dedupeKey: `new-episode-${item.id}-s${seasonNumber}e${episodeNumber}`,
           });
         } catch (error) {
-          console.error("Failed to check recommendations:", error);
-        }
-      }
-
-      if (cancelled) return;
-
-
-      // --------------------------------------------------------
-      // NEW RELEASES
-      // --------------------------------------------------------
-
-      if (preferences.notifications.newReleases) {
-        try {
-          const releases = await getNewReleases();
-
-          if (!Array.isArray(releases) || !releases.length) {
-            return;
-          }
-
-          const freshReleases = releases
-            .filter((release) => {
-              const releaseMediaType = release.media_type || "movie";
-
-              return !watchlistIds.has(
-                `${releaseMediaType}-${release.id}`,
-              );
-            })
-            .slice(0, 2);
-
-          freshReleases.forEach((release) => {
-            const title = release.title || release.name;
-
-            if (!title) {
-              return;
-            }
-
-            const mediaType = release.media_type || "movie";
-
-            addNotification({
-              title: `New release: ${title}`,
-              message: "Now available to discover on CineVault",
-              image: release.poster_path
-                ? `https://image.tmdb.org/t/p/w342${release.poster_path}`
-                : null,
-              link: `/${mediaType}/${release.id}`,
-              dedupeKey: `new-release-${release.id}`,
-            });
-          });
-        } catch (error) {
-          console.error("Failed to check new releases:", error);
+          console.error(
+            `Failed to check episodes for ${title}:`,
+            error
+          );
         }
       }
     }
 
-    checkWatchlistNotifications();
+    if (cancelled) return;
 
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    isLoggedIn,
-    watchlistItems,
-    addNotification,
-    preferences,
-  ]);
+    // --------------------------------------------------------
+    // PERSONALIZED RECOMMENDATIONS — ONCE EVERY 6 HOURS
+    // --------------------------------------------------------
+
+    const source = likedSource;
+
+    if (
+      preferences.notifications.personalizedDiscoveries &&
+      source &&
+      canRunDiscovery("recommendations")
+    ) {
+      try {
+        const sourceDetails = await getTitleDetails(
+          source.media_type,
+          source.id
+        );
+
+        if (cancelled) return;
+
+        const recommendations = (
+          sourceDetails?.recommendations?.results || []
+        )
+          .filter((recommendation) => {
+            const mediaType =
+              recommendation.media_type || source.media_type;
+
+            return (
+              recommendation.id &&
+              !watchlistIds.has(`${mediaType}-${recommendation.id}`)
+            );
+          })
+          .slice(0, 2);
+
+        for (const recommendation of recommendations) {
+          if (cancelled) return;
+
+          const title = recommendation.title || recommendation.name;
+          if (!title) continue;
+
+          const mediaType =
+            recommendation.media_type || source.media_type;
+
+          addNotification({
+            title: `You might like ${title}`,
+            message: `Because ${
+              source.title || source.name
+            } is in your Watchlist`,
+            image: poster(recommendation.poster_path),
+            link: `/${mediaType}/${recommendation.id}`,
+            dedupeKey: `recommendation-${recommendation.id}`,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to check recommendations:", error);
+      }
+    }
+
+    if (cancelled) return;
+
+    // --------------------------------------------------------
+    // NEW RELEASE DISCOVERY — ONCE EVERY 6 HOURS
+    // --------------------------------------------------------
+
+    if (
+      preferences.notifications.newReleases &&
+      canRunDiscovery("new-releases")
+    ) {
+      try {
+        const releases = await getNewReleases();
+
+        if (cancelled || !Array.isArray(releases)) return;
+
+        const freshReleases = releases
+          .filter((release) => {
+            const mediaType = release.media_type || "movie";
+
+            return (
+              release.id &&
+              !watchlistIds.has(`${mediaType}-${release.id}`)
+            );
+          })
+          .slice(0, 2);
+
+        for (const release of freshReleases) {
+          if (cancelled) return;
+
+          const title = release.title || release.name;
+          if (!title) continue;
+
+          const mediaType = release.media_type || "movie";
+
+          addNotification({
+            title: `New release: ${title}`,
+            message: "Now available to discover on CineVault",
+            image: poster(release.poster_path),
+            link: `/${mediaType}/${release.id}`,
+            dedupeKey: `new-release-${mediaType}-${release.id}`,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to check new releases:", error);
+      }
+    }
+  }
+
+  checkWatchlistNotifications();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  isLoggedIn,
+  user?.id,
+  watchlistItems,
+  watchlistLoading,
+  notificationsLoading,
+  preferencesLoading,
+  likedSource?.id,
+  likedSource?.media_type,
+  addNotification,
+  preferences.notifications.upcomingMovies,
+  preferences.notifications.personalizedDiscoveries,
+  preferences.notifications.newReleases,
+]);
 
 
   // ============================================================
@@ -829,7 +883,7 @@ function Home() {
               {/* Content */}
               <div className="relative z-10 flex h-full max-w-2xl flex-col justify-center px-8 py-12 sm:px-10 lg:px-14">
                 {/* Eyebrow */}
-                <div className="mb-5 flex items-center gap-3">
+                <div className="animate-fade-up mb-5 flex items-center gap-3">
                   <span className="h-px w-8 bg-gradient-to-r from-[#A855F7] to-[#3B82F6]" />
 
                   <span className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-300">
@@ -838,7 +892,10 @@ function Home() {
                 </div>
 
                 {/* Heading */}
-                <h1 className="max-w-xl text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                <h1
+                  className="animate-fade-up max-w-xl text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl"
+                  style={{ animationDelay: "80ms" }}
+                >
                   Your next favorite
                   <span className="block bg-gradient-to-r from-[#C084FC] via-[#A855F7] to-[#60A5FA] bg-clip-text text-transparent">
                     starts here.
@@ -846,13 +903,19 @@ function Home() {
                 </h1>
 
                 {/* Description */}
-                <p className="mt-5 max-w-lg text-sm leading-6 text-gray-300 sm:text-base">
+                <p
+                  className="animate-fade-up mt-5 max-w-lg text-sm leading-6 text-gray-300 sm:text-base"
+                  style={{ animationDelay: "160ms" }}
+                >
                   Discover movies and series, build your personal watchlist, and
                   keep everything you want to watch in one place.
                 </p>
 
                 {/* CTA */}
-                <div className="mt-7 flex flex-wrap items-center gap-3">
+                <div
+                  className="animate-fade-up mt-7 flex flex-wrap items-center gap-3"
+                  style={{ animationDelay: "240ms" }}
+                >
                   <Link
                     to="/explore"
                     className="group/btn flex items-center gap-2 rounded-full bg-gradient-to-r from-[#A855F7] to-[#3B82F6] px-6 py-3 font-semibold text-white shadow-lg shadow-purple-900/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-purple-500/20"
@@ -873,7 +936,10 @@ function Home() {
                 </div>
 
                 {/* Small feature row */}
-                <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-400">
+                <div
+                  className="animate-fade-up mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-400"
+                  style={{ animationDelay: "320ms" }}
+                >
                   <span className="flex items-center gap-1.5">
                     <IoFilm className="h-4 w-4 text-purple-400" />
                     Movies & Series
@@ -993,7 +1059,7 @@ function Home() {
             <div className="relative z-10 min-h-[300px] px-8 py-10 sm:px-10 lg:px-14">
               <div className="flex h-full max-w-2xl flex-col justify-center">
                 {/* Status */}
-                <div className="mb-5 flex items-center gap-2">
+                <div className="animate-fade-up mb-5 flex items-center gap-2">
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-50" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
@@ -1005,7 +1071,10 @@ function Home() {
                 </div>
 
                 {/* Welcome */}
-                <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                <h1
+                  className="animate-fade-up text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl"
+                  style={{ animationDelay: "80ms" }}
+                >
                   Welcome back,{" "}
                   <span className="bg-gradient-to-r from-[#C084FC] to-[#60A5FA] bg-clip-text text-transparent">
                     {profile?.displayName || "there"}
@@ -1013,14 +1082,20 @@ function Home() {
                   <span className="ml-2">👋</span>
                 </h1>
 
-                <p className="mt-3 max-w-lg text-sm leading-6 text-gray-300 sm:text-base">
+                <p
+                  className="animate-fade-up mt-3 max-w-lg text-sm leading-6 text-gray-300 sm:text-base"
+                  style={{ animationDelay: "160ms" }}
+                >
                   Your watchlist is waiting. Pick up where you left off,
                   discover something new, or add another title to your
                   collection.
                 </p>
 
                 {/* Actions */}
-                <div className="mt-6 flex flex-wrap gap-3">
+                <div
+                  className="animate-fade-up mt-6 flex flex-wrap gap-3"
+                  style={{ animationDelay: "240ms" }}
+                >
                   <Link
                     to="/watchlist"
                     className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#A855F7] to-[#3B82F6] px-6 py-3 font-semibold text-white shadow-lg shadow-purple-900/20 transition-all hover:-translate-y-0.5"
@@ -1040,7 +1115,10 @@ function Home() {
                 </div>
 
                 {/* Quick context */}
-                <div className="mt-6 flex items-center gap-4 text-xs text-gray-400">
+                <div
+                  className="animate-fade-up mt-6 flex items-center gap-4 text-xs text-gray-400"
+                  style={{ animationDelay: "320ms" }}
+                >
                   <span>
                     <strong className="text-white">{titlesCount}</strong>{" "}
                     {titlesCount === 1 ? "title" : "titles"} saved
@@ -1117,7 +1195,6 @@ function Home() {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-xl font-bold text-white">
                   Coming Up Next
-                 
                 </h2>
                 <div className="flex items-center gap-3">
                   <button
@@ -1228,7 +1305,7 @@ function Home() {
               EMPTY WATCHLIST
               ================================================== */}
 
-          {titlesCount === 0 && (
+          {!watchlistLoading && titlesCount === 0 && (
             <div className="mt-16 flex flex-col items-center text-center">
               <p className="text-gray-400">
                 Your watchlist is empty — start adding titles to see them here.

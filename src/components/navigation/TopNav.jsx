@@ -8,6 +8,7 @@ import { getTmdbImage } from "../../utils/tmdbImage";
 import { useProfile } from "../../context/ProfileContext";
 import { useNotifications } from "../../context/NotificationsContext";
 import { formatRelativeTime } from "../../utils/formatRelativeTime";
+import Avatar from "../common/Avatar";
 
 function highlightMatch(text, query) {
   if (!query.trim()) return text;
@@ -140,8 +141,8 @@ function TopNav() {
     setResults([]);
     setTotalResults(0);
   };
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setAccountMenuOpen(false);
     navigate("/");
   };
@@ -188,7 +189,7 @@ function TopNav() {
           {isOpen && query.trim().length >= 2 && (
             <div
               role="listbox"
-              className="absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40"
+             className="animate-pop origin-top absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40"
             >
               {results.length === 0 && !loading && (
                 <p className="px-3 py-4 text-center text-sm text-gray-400">
@@ -258,93 +259,108 @@ function TopNav() {
         {isLoggedIn ? (
           <div className="relative z-40 flex shrink-0 items-center gap-3 sm:gap-6">
             {/* Notifications */}
-           <button
-    type="button"
-    onClick={() => setNotifMenuOpen((v) => !v)}
-    aria-label="Notifications"
-   className="relative z-40 flex h-9 w-9 shrink-0 items-center justify-center text-white sm:h-auto sm:w-auto"
-  >
-    <FiBell className="h-6 w-6" />
-    {unreadCount > 0 && (
-      <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-purple-500" />
-    )}
-  </button>
-
-  {notifMenuOpen && (
-    <>
-      <div className="fixed inset-0 z-10" onClick={() => setNotifMenuOpen(false)} />
-      <div className="absolute right-0 top-12 z-20 w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
-        <div className="flex items-center justify-between px-1">
-          <p className="font-bold text-white">Notifications</p>
-          {notifications.length > 0 && (
-            <button type="button" onClick={markAllAsRead} className="text-xs font-medium text-purple-400 hover:text-purple-300">
-              Mark all as read
-            </button>
-          )}
-        </div>
-
-        <div className="mt-2 max-h-96 space-y-1 overflow-y-auto">
-          {notifications.length === 0 && (
-            <p className="px-1 py-6 text-center text-sm text-gray-400">You're all caught up.</p>
-          )}
-
-          {notifications.slice(0, 8).map((n) => (
-            <Link
-              key={n.id}
-              to={n.link || "#"}
-              onClick={() => {
-                markAsRead(n.id);
-                setNotifMenuOpen(false);
-              }}
-              className={`flex items-start gap-3 rounded-xl p-2 hover:bg-white/5 ${n.read ? "" : "bg-white/[0.03]"}`}
+            <button
+              type="button"
+              onClick={() => setNotifMenuOpen((v) => !v)}
+              aria-label="Notifications"
+              className="relative z-40 flex h-9 w-9 shrink-0 items-center justify-center text-white sm:h-auto sm:w-auto"
             >
-              {n.image ? (
-                <img src={n.image} alt="" className="h-12 w-9 shrink-0 rounded-md object-cover" />
-              ) : (
-                <div className="h-12 w-9 shrink-0 rounded-md bg-white/10" />
+              <FiBell className="h-6 w-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-purple-500" />
               )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-white">{n.title}</p>
-                <p className="truncate text-xs text-gray-400">{n.message}</p>
-                <p className="mt-0.5 text-xs text-purple-400">{formatRelativeTime(n.timestamp)}</p>
-              </div>
-              {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-purple-500" />}
-            </Link>
-          ))}
-        </div>
+            </button>
 
-        {notifications.length > 0 && (
-          <Link
-            to="/notifications"
-            onClick={() => setNotifMenuOpen(false)}
-            className="mt-2 block rounded-xl border-t border-white/10 pt-3 text-center text-sm font-medium text-purple-400 hover:text-purple-300"
-          >
-            View all notifications
-          </Link>
-        )}
-      </div>
-    </>
-  )}
+            {notifMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setNotifMenuOpen(false)}
+                />
+                <div className="animate-pop origin-top-right absolute right-0 top-12 z-20 w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+                  <div className="flex items-center justify-between px-1">
+                    <p className="font-bold text-white">Notifications</p>
+                    {notifications.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllAsRead}
+                        className="text-xs font-medium text-purple-400 hover:text-purple-300"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-2 max-h-96 space-y-1 overflow-y-auto">
+                    {notifications.length === 0 && (
+                      <p className="px-1 py-6 text-center text-sm text-gray-400">
+                        You're all caught up.
+                      </p>
+                    )}
+
+                    {notifications.slice(0, 8).map((n) => (
+                      <Link
+                        key={n.id}
+                        to={n.link || "#"}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          setNotifMenuOpen(false);
+                        }}
+                        className={`flex items-start gap-3 rounded-xl p-2 hover:bg-white/5 ${n.read ? "" : "bg-white/[0.03]"}`}
+                      >
+                        {n.image ? (
+                          <img
+                            src={n.image}
+                            alt=""
+                            className="h-12 w-9 shrink-0 rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="h-12 w-9 shrink-0 rounded-md bg-white/10" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-white">
+                            {n.title}
+                          </p>
+                          <p className="truncate text-xs text-gray-400">
+                            {n.message}
+                          </p>
+                          <p className="mt-0.5 text-xs text-purple-400">
+                            {formatRelativeTime(n.timestamp)}
+                          </p>
+                        </div>
+                        {!n.read && (
+                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-purple-500" />
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+
+                  {notifications.length > 0 && (
+                    <Link
+                      to="/notifications"
+                      onClick={() => setNotifMenuOpen(false)}
+                      className="mt-2 block rounded-xl border-t border-white/10 pt-3 text-center text-sm font-medium text-purple-400 hover:text-purple-300"
+                    >
+                      View all notifications
+                    </Link>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Profile */}
             <button
               type="button"
               onClick={() => setAccountMenuOpen((v) => !v)}
+              aria-label="Open account menu"
+              aria-expanded={accountMenuOpen}
               className="relative z-40 h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-600 sm:h-11 sm:w-11"
             >
-              {profile?.avatar ? (
-                <img
-                  src={profile.avatar}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-bold text-white">
-                  {profile?.displayName
-                    ? profile.displayName.charAt(0).toUpperCase()
-                    : "?"}
-                </span>
-              )}
+              <Avatar
+                src={profile?.avatar}
+                name={profile?.displayName}
+                className="h-full w-full"
+              />
             </button>
 
             {/* Account dropdown */}
@@ -357,7 +373,7 @@ function TopNav() {
                 />
 
                 {/* Menu */}
-                <div className="absolute right-0 top-14 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+               <div className="animate-pop origin-top-right absolute right-0 top-14 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                   <Link
                     to="/settings"
                     onClick={() => setAccountMenuOpen(false)}

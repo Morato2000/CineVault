@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 import { useRef, useState, useEffect, useCallback } from "react";
 
 import { Link } from "react-router-dom";
@@ -208,10 +210,16 @@ function MovieSection({
   // ============================================================
 
   return (
-    <section className="mt-8">
+    <motion.section
+      className="mt-8"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       {/* ======================================================
-          SECTION HEADER
-      ======================================================= */}
+            SECTION HEADER
+        ======================================================= */}
 
       <div className="mb-4 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-xl font-bold text-white">
@@ -265,8 +273,8 @@ function MovieSection({
       </div>
 
       {/* ======================================================
-    LOADING
-======================================================= */}
+      LOADING
+  ======================================================= */}
       {loading && (
         <div
           className="flex gap-4 overflow-x-auto pb-4 scrollbar-none"
@@ -282,8 +290,8 @@ function MovieSection({
       )}
 
       {/* ======================================================
-          ERROR
-      ======================================================= */}
+            ERROR
+        ======================================================= */}
 
       {error && !loading && (
         <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-4 text-sm text-red-300">
@@ -293,8 +301,8 @@ function MovieSection({
       )}
 
       {/* ======================================================
-          EMPTY
-      ======================================================= */}
+            EMPTY
+        ======================================================= */}
 
       {isEmpty && (
         <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-gray-400">
@@ -303,14 +311,14 @@ function MovieSection({
       )}
 
       {/* ======================================================
-          MOVIE CARDS + CUSTOM SCROLL SLIDER
-      ======================================================= */}
+            MOVIE CARDS + CUSTOM SCROLL SLIDER
+        ======================================================= */}
 
       {hasContent && (
         <div className="relative">
           {/* --------------------------------------------------
-              MOVIE CARDS
-          --------------------------------------------------- */}
+                MOVIE CARDS
+            --------------------------------------------------- */}
 
           <div
             ref={scrollRef}
@@ -337,14 +345,22 @@ function MovieSection({
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} type={type} />
+            {movies.map((movie, index) => (
+              <div
+                key={`${movie.media_type || type}-${movie.id}`}
+                className="animate-fade-up shrink-0"
+                style={{
+                  animationDelay: `${Math.min(index, 8) * 50}ms`,
+                }}
+              >
+                <MovieCard movie={movie} type={type} />
+              </div>
             ))}
           </div>
 
           {/* --------------------------------------------------
-              CINEVAULT CUSTOM SCROLL INDICATOR
-          --------------------------------------------------- */}
+                CINEVAULT CUSTOM SCROLL INDICATOR
+            --------------------------------------------------- */}
 
           <div className="mt-1 flex justify-center px-1">
             <div className="relative h-1 w-full max-w-[260px] overflow-hidden rounded-full bg-[#17233D]">
@@ -361,7 +377,7 @@ function MovieSection({
           </div>
         </div>
       )}
-    </section>
+    </motion.section>
   );
 }
 

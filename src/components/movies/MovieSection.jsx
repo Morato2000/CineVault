@@ -218,8 +218,8 @@ function MovieSection({
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       {/* ======================================================
-            SECTION HEADER
-        ======================================================= */}
+    SECTION HEADER
+======================================================= */}
 
       <div className="mb-4 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-xl font-bold text-white">
@@ -234,32 +234,29 @@ function MovieSection({
 
         {hasContent && (
           <div className="flex items-center gap-3">
-            {/* LEFT ARROW */}
-
+            {/* LEFT ARROW — DESKTOP ONLY */}
             <button
               type="button"
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label={`Scroll ${title} left`}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
+              className="hidden h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15] sm:flex"
             >
               <img src={arrowLeft} alt="" className="h-4 w-4" />
             </button>
 
-            {/* RIGHT ARROW */}
-
+            {/* RIGHT ARROW — DESKTOP ONLY */}
             <button
               type="button"
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label={`Scroll ${title} right`}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15]"
+              className="hidden h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-[#040B15] sm:flex"
             >
               <img src={arrowRight} alt="" className="h-4 w-4" />
             </button>
 
-            {/* VIEW ALL */}
-
+            {/* VIEW ALL — MOBILE AND DESKTOP */}
             {viewAllPath && (
               <Link
                 to={viewAllPath}

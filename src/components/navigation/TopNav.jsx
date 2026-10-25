@@ -189,7 +189,7 @@ function TopNav() {
           {isOpen && query.trim().length >= 2 && (
             <div
               role="listbox"
-             className="animate-pop origin-top absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40"
+              className="animate-pop origin-top absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40"
             >
               {results.length === 0 && !loading && (
                 <p className="px-3 py-4 text-center text-sm text-gray-400">
@@ -277,7 +277,16 @@ function TopNav() {
                   className="fixed inset-0 z-10"
                   onClick={() => setNotifMenuOpen(false)}
                 />
-                <div className="animate-pop origin-top-right absolute right-0 top-12 z-20 w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+                <div
+                  className="
+    animate-pop fixed left-1/2 top-20 z-50
+    w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2
+    rounded-2xl border border-indigo-500/30
+    bg-[#0B0F1A] p-3 shadow-xl shadow-black/40
+    sm:absolute sm:left-auto sm:right-0 sm:top-12
+    sm:w-80 sm:max-w-none sm:translate-x-0
+  "
+                >
                   <div className="flex items-center justify-between px-1">
                     <p className="font-bold text-white">Notifications</p>
                     {notifications.length > 0 && (
@@ -373,7 +382,7 @@ function TopNav() {
                 />
 
                 {/* Menu */}
-               <div className="animate-pop origin-top-right absolute right-0 top-14 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                <div className="animate-pop origin-top-right absolute right-0 top-14 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                   <Link
                     to="/settings"
                     onClick={() => setAccountMenuOpen(false)}

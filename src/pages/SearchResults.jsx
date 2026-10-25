@@ -296,7 +296,7 @@ function SearchResults() {
             <>
               {/* Loading */}
               {loading && (
-                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
+                <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
                   {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <MovieCardSkeleton key={i} size="sm" />
                   ))}
@@ -331,7 +331,7 @@ function SearchResults() {
               )}
               {/* Grid view */}
               {!loading && pageItems.length > 0 && viewMode === "grid" && (
-                <div className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
+                <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
                   {pageItems.map((movie) => (
                     <MovieCard key={movie.id} movie={movie} size="sm" />
                   ))}
@@ -386,13 +386,13 @@ function SearchResults() {
 
         {/* Pagination */}
         {query.trim() && !loading && pageItems.length > 0 && (
-          <div className="relative mt-8 flex items-center justify-between">
-            <p className="min-w-0 flex-1 text-left text-sm text-gray-400">
+          <div className="mt-8 flex flex-col items-center gap-4 sm:relative sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+            <p className="w-full text-center text-sm text-gray-400 sm:w-auto sm:text-left">
               Showing {startIndex} to {endIndex} of{" "}
               {activeFilter === "All" ? totalResults : filteredAll.length} items
             </p>
 
-            <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:absolute sm:left-1/2 sm:-translate-x-1/2">
               <button
                 type="button"
                 onClick={() => goToPage(page - 1)}

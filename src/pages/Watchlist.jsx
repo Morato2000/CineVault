@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   IoBookmarkOutline,
@@ -68,39 +68,48 @@ function Watchlist() {
     items.filter((item) => matchesFilter(item, activeFilter)),
     sortBy,
   );
-
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  useEffect(() => {
+    if (page < 1 || page > totalPages) {
+      const next = new URLSearchParams(searchParams);
+      next.set("page", String(Math.min(Math.max(page, 1), totalPages)));
+      setSearchParams(next);
+    }
+  }, [page, totalPages, searchParams, setSearchParams]);
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const startIndex = filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const endIndex = Math.min(page * PAGE_SIZE, filtered.length);
 
   return (
-    <div className="px-8 pb-12">
+    <div className="px-4 pb-12 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold text-white">My Watchlist</h1>
       <p className="mt-1 text-gray-400">
         All the show and movies you want to watch
       </p>
 
       {items.length > 0 && (
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              onClick={() => {
-                setActiveFilter(filter);
-                goToPage(1);
-              }}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
-                activeFilter === filter
-                  ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                  : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
+        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="grid w-full grid-cols-4 gap-2 sm:flex sm:w-auto">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => {
+                  setActiveFilter(filter);
+                  goToPage(1);
+                }}
+                className={`min-w-0 flex-1 whitespace-nowrap rounded-full px-1.5 py-2.5 text-[11px] font-semibold transition-colors sm:flex-none sm:px-5 sm:py-2 sm:text-sm ${
+                  activeFilter === filter
+                    ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                    : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
 
           <div className="relative ml-auto">
             <button
@@ -217,7 +226,7 @@ function Watchlist() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.22, ease: "easeOut" }}
-                className="mt-8 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5"
+                className="mt-6 grid grid-cols-2 gap-x-3 gap-y-5 sm:mt-8 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
               >
                 {pageItems.map((movie, index) => (
                   <motion.div
@@ -284,12 +293,12 @@ function Watchlist() {
         </div>
 
         {pageItems.length > 0 && (
-          <div className="relative mt-8 flex items-center justify-between">
-            <p className="min-w-0 flex-1 text-left text-sm text-gray-400">
+          <div className="mt-8 flex flex-col items-center gap-4 sm:relative sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+            <p className="w-full text-center text-sm text-gray-400 sm:min-w-0 sm:flex-1 sm:text-left">
               Showing {startIndex} to {endIndex} of {filtered.length} items
             </p>
 
-            <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:absolute sm:left-1/2 sm:-translate-x-1/2">
               <motion.button
                 type="button"
                 onClick={() => goToPage(page - 1)}
@@ -303,26 +312,67 @@ function Watchlist() {
                 <IoChevronBack className="h-4 w-4" />
               </motion.button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (num) => (
-                  <motion.button
-                    key={num}
-                    type="button"
-                    onClick={() => goToPage(num)}
-                    aria-current={num === page ? "page" : undefined}
-                    whileHover={{ scale: 1.06 }}
-                    whileTap={{ scale: 0.94 }}
-                    transition={{ duration: 0.15 }}
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold ${
-                      num === page
-                        ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                        : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
-                    }`}
-                  >
-                    {num}
-                  </motion.button>
-                ),
-              )}
+              {(() => {
+                const getVisiblePages = () => {
+                  if (totalPages <= 5) {
+                    return Array.from({ length: totalPages }, (_, i) => i + 1);
+                  }
+
+                  if (page <= 3) {
+                    return [1, 2, 3, 4, "...", totalPages];
+                  }
+
+                  if (page >= totalPages - 2) {
+                    return [
+                      1,
+                      "...",
+                      totalPages - 3,
+                      totalPages - 2,
+                      totalPages - 1,
+                      totalPages,
+                    ];
+                  }
+
+                  return [
+                    1,
+                    "...",
+                    page - 1,
+                    page,
+                    page + 1,
+                    "...",
+                    totalPages,
+                  ];
+                };
+
+                return getVisiblePages().map((num, index) =>
+                  num === "..." ? (
+                    <span
+                      key={`ellipsis-${index}`}
+                      className="flex h-9 w-6 items-center justify-center text-gray-500"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <motion.button
+                      key={num}
+                      type="button"
+                      onClick={() => goToPage(num)}
+                      aria-current={num === page ? "page" : undefined}
+                      aria-label={`Go to page ${num}`}
+                      whileHover={{ scale: 1.06 }}
+                      whileTap={{ scale: 0.94 }}
+                      transition={{ duration: 0.15 }}
+                      className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold ${
+                        num === page
+                          ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                          : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
+                      }`}
+                    >
+                      {num}
+                    </motion.button>
+                  ),
+                );
+              })()}
 
               <motion.button
                 type="button"

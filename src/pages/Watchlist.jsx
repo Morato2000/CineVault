@@ -90,8 +90,9 @@ function Watchlist() {
       </p>
 
       {items.length > 0 && (
-        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="grid w-full grid-cols-4 gap-2 sm:flex sm:w-auto">
+        <div className="mt-5 flex items-center gap-2">
+          {/* Filters */}
+          <div className="grid min-w-0 flex-1 grid-cols-4 gap-1.5 sm:flex sm:w-auto sm:flex-none sm:gap-2">
             {FILTERS.map((filter) => (
               <button
                 key={filter}
@@ -100,7 +101,7 @@ function Watchlist() {
                   setActiveFilter(filter);
                   goToPage(1);
                 }}
-                className={`min-w-0 flex-1 whitespace-nowrap rounded-full px-1.5 py-2.5 text-[11px] font-semibold transition-colors sm:flex-none sm:px-5 sm:py-2 sm:text-sm ${
+                className={`min-w-0 whitespace-nowrap rounded-full px-1 py-2 text-[10px] font-semibold transition-colors sm:px-5 sm:py-2 sm:text-sm ${
                   activeFilter === filter
                     ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
                     : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
@@ -111,14 +112,15 @@ function Watchlist() {
             ))}
           </div>
 
-          <div className="relative ml-auto">
+          {/* Sort */}
+          <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => setSortMenuOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-white/10"
+              className="flex items-center gap-1 rounded-full border border-[#477DF7]/70 px-2 py-2 text-[10px] font-medium text-gray-200 hover:bg-white/10 sm:gap-2 sm:px-4 sm:text-sm"
             >
-              Sort by: {sortBy}
-              <IoChevronDown className="h-4 w-4" />
+              Sort
+              <IoChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
             </button>
 
             {sortMenuOpen && (
@@ -127,7 +129,7 @@ function Watchlist() {
                   className="fixed inset-0 z-10"
                   onClick={() => setSortMenuOpen(false)}
                 />
-                <div className="animate-pop origin-top-right absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                <div className="animate-pop absolute right-0 z-20 mt-2 w-44 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                   {SORT_OPTIONS.map((option) => (
                     <button
                       key={option}
@@ -150,13 +152,14 @@ function Watchlist() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Grid / List */}
+          <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => setViewMode("grid")}
               aria-label="Grid view"
               aria-pressed={viewMode === "grid"}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl sm:h-10 sm:w-10 ${
                 viewMode === "grid"
                   ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
                   : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
@@ -170,7 +173,7 @@ function Watchlist() {
               onClick={() => setViewMode("list")}
               aria-label="List view"
               aria-pressed={viewMode === "list"}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl sm:h-10 sm:w-10 ${
                 viewMode === "list"
                   ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
                   : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"

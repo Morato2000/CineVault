@@ -958,7 +958,6 @@ function Home() {
                 loading={loading}
               />
 
-              <WatchlistWaitingCard className="absolute -bottom-10 right-3 z-30 w-[min(85%,320px)] sm:right-5 lg:right-0" />
             </div>
             {/* ==================================================
     POPULAR MOVIES
@@ -972,7 +971,6 @@ function Home() {
                 loading={loading}
               />
 
-              <SaveWhatYouLoveCard className="absolute -bottom-10 right-3 z-30 w-[min(85%,320px)] sm:right-5 lg:right-0" />
             </div>
             {/* ==================================================
                 POPULAR SERIES

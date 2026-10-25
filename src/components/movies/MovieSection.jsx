@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-
+import { WatchlistWaitingCard, SaveWhatYouLoveCard } from "../home/PromoCards";
 import { useRef, useState, useEffect, useCallback } from "react";
 
 import { Link } from "react-router-dom";
@@ -313,6 +313,21 @@ function MovieSection({
 
       {hasContent && (
         <div className="relative">
+          {title === "Trending This Week" && (
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-30 flex items-center">
+              <div className="pointer-events-auto w-[min(75vw,280px)] sm:w-72">
+                <WatchlistWaitingCard />
+              </div>
+            </div>
+          )}
+
+          {title === "Popular Movies" && (
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-30 flex items-center">
+              <div className="pointer-events-auto w-[min(75vw,280px)] sm:w-72">
+                <SaveWhatYouLoveCard />
+              </div>
+            </div>
+          )}
           {/* --------------------------------------------------
                 MOVIE CARDS
             --------------------------------------------------- */}

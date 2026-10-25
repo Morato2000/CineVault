@@ -601,7 +601,7 @@ function Stats() {
               <div className="rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-4">
                 <h2 className="font-bold text-white">Collection Insights</h2>
 
-                <div className="grid-cols-1 lg:grid-cols-2 gap-3.5">
+                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <InsightCard
                     icon={
                       favoriteGenre

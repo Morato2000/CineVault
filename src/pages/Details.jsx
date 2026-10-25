@@ -839,20 +839,38 @@ function Details() {
 
       <div className="relative">
         <div className="relative h-[520px] overflow-hidden rounded-2xl sm:h-96">
+          {/* Mobile: use the vertical poster */}
+          {poster ? (
+            <img
+              src={poster}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover sm:hidden"
+            />
+          ) : (
+            <PosterFallback
+              title={title}
+              className="absolute inset-0 sm:hidden"
+            />
+          )}
+
+          {/* Desktop: keep using the wide backdrop */}
           {backdrop ? (
             <img
               src={backdrop}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 hidden h-full w-full object-cover sm:block"
             />
           ) : poster ? (
             <img
               src={poster}
               alt=""
-              className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+              className="absolute inset-0 hidden h-full w-full scale-110 object-cover blur-md sm:block"
             />
           ) : (
-            <PosterFallback title={title} className="absolute inset-0" />
+            <PosterFallback
+              title={title}
+              className="absolute inset-0 hidden sm:block"
+            />
           )}
 
           <div className="absolute inset-0 bg-linear-to-t from-[#080D17]/60 via-[#080D17]/40 to-black/30" />

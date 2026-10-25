@@ -307,7 +307,7 @@ function Stats() {
       ) : totalMinutes === null ? (
         <div className="mt-6 space-y-6">
           {/* Stat Cards Skeleton */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
@@ -317,7 +317,7 @@ function Stats() {
           </div>
 
           {/* Bento Skeleton */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+         <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <div className="h-64 animate-pulse rounded-2xl bg-[#111827]" />
             <div className="h-64 animate-pulse rounded-2xl bg-[#111827]" />
             <div className="h-64 animate-pulse rounded-2xl bg-[#111827]" />
@@ -327,7 +327,7 @@ function Stats() {
       ) : (
         <>
           {/* Stat Cards */}
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-4">
             <StatCard
               iconSrc={statMovie}
               label="Movies"
@@ -601,7 +601,7 @@ function Stats() {
               <div className="rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-4">
                 <h2 className="font-bold text-white">Collection Insights</h2>
 
-                <div className="mt-3 grid grid-cols-1 gap-3.5">
+                <div className="grid-cols-1 lg:grid-cols-2 gap-3.5">
                   <InsightCard
                     icon={
                       favoriteGenre

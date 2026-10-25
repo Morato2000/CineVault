@@ -315,7 +315,10 @@ function MovieSection({
         <div className="relative">
           {title === "Trending This Week" && (
             <div className="pointer-events-none absolute inset-y-0 right-0 z-30 flex items-center">
-              <div className="pointer-events-auto w-[min(75vw,280px)] sm:w-72">
+              {/* Soft fade behind the promo card */}
+              <div className="absolute inset-y-0 -left-10 w-10 bg-gradient-to-l from-[#0B0F1A]/90 via-[#0B0F1A]/50 to-transparent" />
+
+              <div className="pointer-events-auto relative w-[55vw] max-w-[210px] origin-right scale-[0.85] sm:w-72 sm:max-w-none sm:scale-100">
                 <WatchlistWaitingCard />
               </div>
             </div>
@@ -323,7 +326,10 @@ function MovieSection({
 
           {title === "Popular Movies" && (
             <div className="pointer-events-none absolute inset-y-0 right-0 z-30 flex items-center">
-              <div className="pointer-events-auto w-[min(75vw,280px)] sm:w-72">
+              {/* Soft fade behind the promo card */}
+              <div className="absolute inset-y-0 -left-10 w-10 bg-gradient-to-l from-[#0B0F1A]/90 via-[#0B0F1A]/50 to-transparent" />
+
+              <div className="pointer-events-auto relative w-[55vw] max-w-[210px] origin-right scale-[0.85] sm:w-72 sm:max-w-none sm:scale-100">
                 <SaveWhatYouLoveCard />
               </div>
             </div>

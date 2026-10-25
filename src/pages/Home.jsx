@@ -14,7 +14,8 @@ import {
 
 import heroBg from "../assets/images/hero-bg.jpg";
 import heroBg2 from "../assets/images/hero-bg2.png";
-
+import heroBgMobile from "../assets/images/hero-bg-mobile.png";
+import heroBg2Mobile from "../assets/images/hero-bg2-mobile.png";
 import FeatureHighlights from "../components/home/FeatureHighlights";
 
 import Footer from "../components/layout/Footer";
@@ -145,25 +146,16 @@ function Home() {
   // AUTH & USER DATA
   // ============================================================
 
-const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user } = useAuth();
 
-const {
-  items: watchlistItems,
-  loading: watchlistLoading,
-} = useWatchlist();
+  const { items: watchlistItems, loading: watchlistLoading } = useWatchlist();
 
-const { items: favoriteItems } = useFavorites();
-const { profile } = useProfile();
+  const { items: favoriteItems } = useFavorites();
+  const { profile } = useProfile();
 
-const {
-  addNotification,
-  loading: notificationsLoading,
-} = useNotifications();
+  const { addNotification, loading: notificationsLoading } = useNotifications();
 
-const {
-  preferences,
-  loading: preferencesLoading,
-} = usePreferences();
+  const { preferences, loading: preferencesLoading } = usePreferences();
   // ============================================================
   // PUBLIC HOME DATA
   // ============================================================
@@ -315,295 +307,281 @@ const {
   // WATCHLIST NOTIFICATIONS
   // ============================================================
 
-
-useEffect(() => {
-  if (
-    !isLoggedIn ||
-    !user?.id ||
-    watchlistLoading ||
-    notificationsLoading ||
-    preferencesLoading
-  ) {
-    return;
-  }
-
-  let cancelled = false;
-
-  const DAY = 24 * 60 * 60 * 1000;
-  const now = Date.now();
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const poster = (path) =>
-    path ? `https://image.tmdb.org/t/p/w342${path}` : null;
-
-  const longDate = (date) =>
-    date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-  // Store discovery timestamps per account and category.
-  // localStorage keeps the throttle across page reloads.
-  const canRunDiscovery = (category) => {
-    const key = `cinevault-discovery-${user.id}-${category}`;
-
-    try {
-      const lastRun = Number(localStorage.getItem(key) || 0);
-
-      if (now - lastRun < DISCOVERY_THROTTLE_MS) {
-        return false;
-      }
-
-      // Reserve the window immediately so effect reruns don't
-      // launch duplicate discovery requests.
-      localStorage.setItem(key, String(now));
-      return true;
-    } catch {
-      // Continue working if browser storage is unavailable.
-      return true;
+  useEffect(() => {
+    if (
+      !isLoggedIn ||
+      !user?.id ||
+      watchlistLoading ||
+      notificationsLoading ||
+      preferencesLoading
+    ) {
+      return;
     }
-  };
 
-  async function checkWatchlistNotifications() {
-    const watchlistIds = new Set(
-      watchlistItems.map(
-        (item) => `${item.media_type}-${item.id}`
-      )
-    );
+    let cancelled = false;
 
-    // --------------------------------------------------------
-    // RELEASES AND RECENT EPISODES
-    // --------------------------------------------------------
+    const DAY = 24 * 60 * 60 * 1000;
+    const now = Date.now();
 
-    if (preferences.notifications.upcomingMovies) {
-      for (const item of watchlistItems) {
-        if (cancelled) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-        const title = item.title || item.name;
-        if (!title || !item.id) continue;
+    const poster = (path) =>
+      path ? `https://image.tmdb.org/t/p/w342${path}` : null;
 
-        const rawDate = item.release_date || item.first_air_date;
-        const releaseDate = rawDate ? new Date(rawDate) : null;
+    const longDate = (date) =>
+      date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
-        if (
-          releaseDate &&
-          !Number.isNaN(releaseDate.getTime())
-        ) {
-          releaseDate.setHours(0, 0, 0, 0);
+    // Store discovery timestamps per account and category.
+    // localStorage keeps the throttle across page reloads.
+    const canRunDiscovery = (category) => {
+      const key = `cinevault-discovery-${user.id}-${category}`;
 
-          const addedDate = new Date(item.addedAt || 0);
-          addedDate.setHours(0, 0, 0, 0);
+      try {
+        const lastRun = Number(localStorage.getItem(key) || 0);
 
-          const daysSinceRelease =
-            (today.getTime() - releaseDate.getTime()) / DAY;
+        if (now - lastRun < DISCOVERY_THROTTLE_MS) {
+          return false;
+        }
 
-          if (releaseDate > today) {
+        // Reserve the window immediately so effect reruns don't
+        // launch duplicate discovery requests.
+        localStorage.setItem(key, String(now));
+        return true;
+      } catch {
+        // Continue working if browser storage is unavailable.
+        return true;
+      }
+    };
+
+    async function checkWatchlistNotifications() {
+      const watchlistIds = new Set(
+        watchlistItems.map((item) => `${item.media_type}-${item.id}`),
+      );
+
+      // --------------------------------------------------------
+      // RELEASES AND RECENT EPISODES
+      // --------------------------------------------------------
+
+      if (preferences.notifications.upcomingMovies) {
+        for (const item of watchlistItems) {
+          if (cancelled) return;
+
+          const title = item.title || item.name;
+          if (!title || !item.id) continue;
+
+          const rawDate = item.release_date || item.first_air_date;
+          const releaseDate = rawDate ? new Date(rawDate) : null;
+
+          if (releaseDate && !Number.isNaN(releaseDate.getTime())) {
+            releaseDate.setHours(0, 0, 0, 0);
+
+            const addedDate = new Date(item.addedAt || 0);
+            addedDate.setHours(0, 0, 0, 0);
+
+            const daysSinceRelease =
+              (today.getTime() - releaseDate.getTime()) / DAY;
+
+            if (releaseDate > today) {
+              addNotification({
+                title: `${title} is coming soon`,
+                message: `Release date: ${longDate(releaseDate)}`,
+                image: poster(item.poster_path),
+                link: `/${item.media_type}/${item.id}`,
+                dedupeKey: `coming-soon-${item.media_type}-${item.id}`,
+              });
+            } else if (
+              daysSinceRelease >= 0 &&
+              daysSinceRelease <= 7 &&
+              releaseDate.getTime() > addedDate.getTime()
+            ) {
+              addNotification({
+                title: `${title} is now available`,
+                message: `Released on: ${longDate(releaseDate)}`,
+                image: poster(item.poster_path),
+                link: `/${item.media_type}/${item.id}`,
+                dedupeKey: `now-available-${item.media_type}-${item.id}`,
+              });
+            }
+          }
+
+          // Only inspect the latest aired episode for TV shows.
+          if (item.media_type !== "tv") continue;
+
+          try {
+            const details = await getTitleDetails("tv", item.id);
+
+            if (cancelled) return;
+
+            const latestEpisode = details?.last_episode_to_air;
+
+            if (!latestEpisode?.air_date) continue;
+
+            const airDate = new Date(latestEpisode.air_date);
+
+            if (Number.isNaN(airDate.getTime())) continue;
+
+            airDate.setHours(0, 0, 0, 0);
+
+            const daysSinceAir = (today.getTime() - airDate.getTime()) / DAY;
+
+            // Ignore future episodes and episodes older than 14 days.
+            if (daysSinceAir < 0 || daysSinceAir > 14) continue;
+
+            // Avoid calling an episode "new" if it aired before
+            // this show was added to the user's watchlist.
+            const addedDate = new Date(item.addedAt || 0);
+            addedDate.setHours(0, 0, 0, 0);
+
+            if (airDate.getTime() <= addedDate.getTime()) continue;
+
+            const seasonNumber = latestEpisode.season_number;
+            const episodeNumber = latestEpisode.episode_number;
+
+            if (seasonNumber == null || episodeNumber == null) continue;
+
             addNotification({
-              title: `${title} is coming soon`,
-              message: `Release date: ${longDate(releaseDate)}`,
+              title: `${title} — New episode available`,
+              message: `Season ${seasonNumber}, Episode ${episodeNumber}: ${
+                latestEpisode.name || "New episode"
+              }`,
               image: poster(item.poster_path),
-              link: `/${item.media_type}/${item.id}`,
-              dedupeKey: `coming-soon-${item.media_type}-${item.id}`,
+              link: `/tv/${item.id}`,
+              dedupeKey: `new-episode-${item.id}-s${seasonNumber}e${episodeNumber}`,
             });
-          } else if (
-            daysSinceRelease >= 0 &&
-            daysSinceRelease <= 7 &&
-            releaseDate.getTime() > addedDate.getTime()
-          ) {
-            addNotification({
-              title: `${title} is now available`,
-              message: `Released on: ${longDate(releaseDate)}`,
-              image: poster(item.poster_path),
-              link: `/${item.media_type}/${item.id}`,
-              dedupeKey: `now-available-${item.media_type}-${item.id}`,
-            });
+          } catch (error) {
+            console.error(`Failed to check episodes for ${title}:`, error);
           }
         }
+      }
 
-        // Only inspect the latest aired episode for TV shows.
-        if (item.media_type !== "tv") continue;
+      if (cancelled) return;
 
+      // --------------------------------------------------------
+      // PERSONALIZED RECOMMENDATIONS — ONCE EVERY 6 HOURS
+      // --------------------------------------------------------
+
+      const source = likedSource;
+
+      if (
+        preferences.notifications.personalizedDiscoveries &&
+        source &&
+        canRunDiscovery("recommendations")
+      ) {
         try {
-          const details = await getTitleDetails("tv", item.id);
-
-          if (cancelled) return;
-
-          const latestEpisode = details?.last_episode_to_air;
-
-          if (!latestEpisode?.air_date) continue;
-
-          const airDate = new Date(latestEpisode.air_date);
-
-          if (Number.isNaN(airDate.getTime())) continue;
-
-          airDate.setHours(0, 0, 0, 0);
-
-          const daysSinceAir =
-            (today.getTime() - airDate.getTime()) / DAY;
-
-          // Ignore future episodes and episodes older than 14 days.
-          if (daysSinceAir < 0 || daysSinceAir > 14) continue;
-
-          // Avoid calling an episode "new" if it aired before
-          // this show was added to the user's watchlist.
-          const addedDate = new Date(item.addedAt || 0);
-          addedDate.setHours(0, 0, 0, 0);
-
-          if (airDate.getTime() <= addedDate.getTime()) continue;
-
-          const seasonNumber = latestEpisode.season_number;
-          const episodeNumber = latestEpisode.episode_number;
-
-          if (seasonNumber == null || episodeNumber == null) continue;
-
-          addNotification({
-            title: `${title} — New episode available`,
-            message: `Season ${seasonNumber}, Episode ${episodeNumber}: ${
-              latestEpisode.name || "New episode"
-            }`,
-            image: poster(item.poster_path),
-            link: `/tv/${item.id}`,
-            dedupeKey: `new-episode-${item.id}-s${seasonNumber}e${episodeNumber}`,
-          });
-        } catch (error) {
-          console.error(
-            `Failed to check episodes for ${title}:`,
-            error
+          const sourceDetails = await getTitleDetails(
+            source.media_type,
+            source.id,
           );
-        }
-      }
-    }
 
-    if (cancelled) return;
-
-    // --------------------------------------------------------
-    // PERSONALIZED RECOMMENDATIONS — ONCE EVERY 6 HOURS
-    // --------------------------------------------------------
-
-    const source = likedSource;
-
-    if (
-      preferences.notifications.personalizedDiscoveries &&
-      source &&
-      canRunDiscovery("recommendations")
-    ) {
-      try {
-        const sourceDetails = await getTitleDetails(
-          source.media_type,
-          source.id
-        );
-
-        if (cancelled) return;
-
-        const recommendations = (
-          sourceDetails?.recommendations?.results || []
-        )
-          .filter((recommendation) => {
-            const mediaType =
-              recommendation.media_type || source.media_type;
-
-            return (
-              recommendation.id &&
-              !watchlistIds.has(`${mediaType}-${recommendation.id}`)
-            );
-          })
-          .slice(0, 2);
-
-        for (const recommendation of recommendations) {
           if (cancelled) return;
 
-          const title = recommendation.title || recommendation.name;
-          if (!title) continue;
+          const recommendations = (
+            sourceDetails?.recommendations?.results || []
+          )
+            .filter((recommendation) => {
+              const mediaType = recommendation.media_type || source.media_type;
 
-          const mediaType =
-            recommendation.media_type || source.media_type;
+              return (
+                recommendation.id &&
+                !watchlistIds.has(`${mediaType}-${recommendation.id}`)
+              );
+            })
+            .slice(0, 2);
 
-          addNotification({
-            title: `You might like ${title}`,
-            message: `Because ${
-              source.title || source.name
-            } is in your Watchlist`,
-            image: poster(recommendation.poster_path),
-            link: `/${mediaType}/${recommendation.id}`,
-            dedupeKey: `recommendation-${recommendation.id}`,
-          });
+          for (const recommendation of recommendations) {
+            if (cancelled) return;
+
+            const title = recommendation.title || recommendation.name;
+            if (!title) continue;
+
+            const mediaType = recommendation.media_type || source.media_type;
+
+            addNotification({
+              title: `You might like ${title}`,
+              message: `Because ${
+                source.title || source.name
+              } is in your Watchlist`,
+              image: poster(recommendation.poster_path),
+              link: `/${mediaType}/${recommendation.id}`,
+              dedupeKey: `recommendation-${recommendation.id}`,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to check recommendations:", error);
         }
-      } catch (error) {
-        console.error("Failed to check recommendations:", error);
       }
-    }
 
-    if (cancelled) return;
+      if (cancelled) return;
 
-    // --------------------------------------------------------
-    // NEW RELEASE DISCOVERY — ONCE EVERY 6 HOURS
-    // --------------------------------------------------------
+      // --------------------------------------------------------
+      // NEW RELEASE DISCOVERY — ONCE EVERY 6 HOURS
+      // --------------------------------------------------------
 
-    if (
-      preferences.notifications.newReleases &&
-      canRunDiscovery("new-releases")
-    ) {
-      try {
-        const releases = await getNewReleases();
+      if (
+        preferences.notifications.newReleases &&
+        canRunDiscovery("new-releases")
+      ) {
+        try {
+          const releases = await getNewReleases();
 
-        if (cancelled || !Array.isArray(releases)) return;
+          if (cancelled || !Array.isArray(releases)) return;
 
-        const freshReleases = releases
-          .filter((release) => {
+          const freshReleases = releases
+            .filter((release) => {
+              const mediaType = release.media_type || "movie";
+
+              return (
+                release.id && !watchlistIds.has(`${mediaType}-${release.id}`)
+              );
+            })
+            .slice(0, 2);
+
+          for (const release of freshReleases) {
+            if (cancelled) return;
+
+            const title = release.title || release.name;
+            if (!title) continue;
+
             const mediaType = release.media_type || "movie";
 
-            return (
-              release.id &&
-              !watchlistIds.has(`${mediaType}-${release.id}`)
-            );
-          })
-          .slice(0, 2);
-
-        for (const release of freshReleases) {
-          if (cancelled) return;
-
-          const title = release.title || release.name;
-          if (!title) continue;
-
-          const mediaType = release.media_type || "movie";
-
-          addNotification({
-            title: `New release: ${title}`,
-            message: "Now available to discover on CineVault",
-            image: poster(release.poster_path),
-            link: `/${mediaType}/${release.id}`,
-            dedupeKey: `new-release-${mediaType}-${release.id}`,
-          });
+            addNotification({
+              title: `New release: ${title}`,
+              message: "Now available to discover on CineVault",
+              image: poster(release.poster_path),
+              link: `/${mediaType}/${release.id}`,
+              dedupeKey: `new-release-${mediaType}-${release.id}`,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to check new releases:", error);
         }
-      } catch (error) {
-        console.error("Failed to check new releases:", error);
       }
     }
-  }
 
-  checkWatchlistNotifications();
+    checkWatchlistNotifications();
 
-  return () => {
-    cancelled = true;
-  };
-}, [
-  isLoggedIn,
-  user?.id,
-  watchlistItems,
-  watchlistLoading,
-  notificationsLoading,
-  preferencesLoading,
-  likedSource?.id,
-  likedSource?.media_type,
-  addNotification,
-  preferences.notifications.upcomingMovies,
-  preferences.notifications.personalizedDiscoveries,
-  preferences.notifications.newReleases,
-]);
-
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isLoggedIn,
+    user?.id,
+    watchlistItems,
+    watchlistLoading,
+    notificationsLoading,
+    preferencesLoading,
+    likedSource?.id,
+    likedSource?.media_type,
+    addNotification,
+    preferences.notifications.upcomingMovies,
+    preferences.notifications.personalizedDiscoveries,
+    preferences.notifications.newReleases,
+  ]);
 
   // ============================================================
   // COMING UP SCROLL HANDLING
@@ -848,16 +826,22 @@ useEffect(() => {
 
             <section className="group relative aspect-[2.3/1] min-h-[360px] w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0B0F1A] shadow-2xl">
               {/* Background */}
-              <div
-                className={`absolute inset-0 bg-cover bg-right bg-no-repeat transition-all duration-700 ${
+              <picture
+                className={`absolute inset-0 transition-all duration-700 ${
                   heroLoaded
                     ? "scale-100 opacity-100"
                     : "scale-[1.03] opacity-0"
                 }`}
-                style={{
-                  backgroundImage: `url(${heroBg})`,
-                }}
-              />
+              >
+                <source media="(max-width: 639px)" srcSet={heroBgMobile} />
+
+                <img
+                  src={heroBg}
+                  alt=""
+                  onLoad={() => setHeroLoaded(true)}
+                  className="h-full w-full object-cover object-right"
+                />
+              </picture>
 
               {/* Cinematic overlays */}
               <div className="absolute inset-0 bg-gradient-to-r from-[#080D17] via-[#080D17]/80 to-[#080D17]/15" />
@@ -1040,12 +1024,15 @@ useEffect(() => {
 
           <section className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0B0F1A] shadow-2xl">
             {/* Background */}
-            <div
-              className="absolute inset-0 bg-cover bg-right bg-no-repeat transition-transform duration-700 group-hover:scale-[1.02]"
-              style={{
-                backgroundImage: `url(${heroBg2})`,
-              }}
-            />
+            <picture className="absolute inset-0 transition-transform duration-700 sm:group-hover:scale-[1.02]">
+              <source media="(max-width: 639px)" srcSet={heroBg2Mobile} />
+
+              <img
+                src={heroBg2}
+                alt=""
+                className="h-full w-full object-cover object-center"
+              />
+            </picture>
 
             {/* Cinematic overlays */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#080D17] via-[#080D17]/85 to-[#080D17]/20" />
@@ -1211,7 +1198,7 @@ useEffect(() => {
                     onClick={() => scrollComingUp("right")}
                     disabled={!canScrollComingUpRight}
                     aria-label="Scroll right"
-                   className="hidden h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:flex"
+                    className="hidden h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:flex"
                   >
                     <img src={arrowRight} alt="" className="h-4 w-4" />
                   </button>

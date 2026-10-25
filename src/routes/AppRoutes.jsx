@@ -24,6 +24,7 @@ import Notifications from "../pages/Notifications";
 import WrappedLanding from "../pages/WrappedLanding";
 import MonthlyWrapped from "../pages/MonthlyWrapped.jsx";
 import YearlyWrapped from "../pages/YearlyWrapped";
+import MessageUs from "../pages/MessageUs";
 export default function AppRoutes() {
   return (
     <>
@@ -72,6 +73,7 @@ export default function AppRoutes() {
           <Route path="/:mediaType/:id/cast" element={<Cast />} />
           <Route path="/:mediaType/:id/info" element={<FullInfo />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/message-us" element={<MessageUs />} />
           <Route
             path="/wrapped"
             element={

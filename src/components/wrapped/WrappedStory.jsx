@@ -6,7 +6,7 @@ function WrappedStory({ slides, onClose }) {
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();
   const [progressStarted, setProgressStarted] = useState(false);
-  const close = onClose || (() => navigate("/wrapped"));
+const close = onClose || (() => navigate("/wrapped", { replace: true }));
   const isLast = index >= slides.length - 1;
 
   const reducedMotion =

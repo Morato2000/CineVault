@@ -82,7 +82,7 @@ function YearlyWrapped() {
         </p>
 
         <button
-          onClick={() => navigate("/wrapped")}
+          onClick={() => navigate("/wrapped", { replace: true })}
           className="relative mt-7 rounded-full bg-gradient-to-r from-[#A855F7] to-[#3B82F6] px-6 py-3 text-sm font-bold transition hover:scale-105"
         >
           Back to Wrapped
@@ -386,7 +386,7 @@ function YearlyWrapped() {
       </p>
 
       <button
-        onClick={() => navigate("/wrapped")}
+        onClick={() => navigate("/wrapped", { replace: true })}
         className="mt-5 inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#A855F7] to-[#3B82F6] px-7 py-3.5 text-sm font-black shadow-lg shadow-purple-950/40 transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2 focus:ring-offset-[#080D17]"
       >
         Back to Wrapped

@@ -824,7 +824,7 @@ function Home() {
                 HERO
                 ================================================== */}
 
-            <section className="group relative aspect-[2.3/1] min-h-[360px] w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0B0F1A] shadow-2xl">
+          <section className="group relative min-h-[520px] w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0B0F1A] shadow-2xl sm:aspect-[2.3/1] sm:min-h-[360px]">
               {/* Background */}
               <picture
                 className={`absolute inset-0 transition-all duration-700 ${

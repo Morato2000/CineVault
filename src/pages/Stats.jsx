@@ -71,7 +71,7 @@ function StatCard({ iconSrc, label, value, sub, valueSuffix = "" }) {
 function InsightCard({ icon: Icon, iconSrc, label, value, sub }) {
   return (
     <div className="rounded-2xl bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-px">
-      <div className="flex items-center gap-3 rounded-[15px] bg-[#080F1A] p-3.5">
+      <div className="flex min-w-0 items-center gap-3 rounded-[15px] bg-[#080F1A] p-4">
         <span
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
           style={{ backgroundColor: INSIGHT_BADGE_BG }}
@@ -82,9 +82,11 @@ function InsightCard({ icon: Icon, iconSrc, label, value, sub }) {
             <Icon className="h-5 w-5" style={{ color: INSIGHT_ICON_COLOR }} />
           )}
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs leading-tight text-gray-400">{label}</p>
-          <p className="truncate font-bold leading-tight text-white">{value}</p>
+          <p className="break-words font-bold leading-snug text-white">
+            {value}
+          </p>
           {sub && <p className="text-xs leading-tight text-gray-500">{sub}</p>}
         </div>
       </div>
@@ -599,7 +601,7 @@ function Stats() {
               <div className="rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-4">
                 <h2 className="font-bold text-white">Collection Insights</h2>
 
-                <div className="mt-3 grid grid-cols-2 gap-3.5">
+                <div className="mt-3 grid grid-cols-1 gap-3.5">
                   <InsightCard
                     icon={
                       favoriteGenre

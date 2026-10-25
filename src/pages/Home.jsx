@@ -1202,7 +1202,7 @@ useEffect(() => {
                     onClick={() => scrollComingUp("left")}
                     disabled={!canScrollComingUpLeft}
                     aria-label="Scroll left"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                    className="hidden h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:flex"
                   >
                     <img src={arrowLeft} alt="" className="h-4 w-4" />
                   </button>
@@ -1211,7 +1211,7 @@ useEffect(() => {
                     onClick={() => scrollComingUp("right")}
                     disabled={!canScrollComingUpRight}
                     aria-label="Scroll right"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                   className="hidden h-8 w-8 items-center justify-center rounded-full border border-[#141134] bg-[#040B15] text-gray-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:flex"
                   >
                     <img src={arrowRight} alt="" className="h-4 w-4" />
                   </button>

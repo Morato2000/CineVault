@@ -824,7 +824,7 @@ function Home() {
                 HERO
                 ================================================== */}
 
-          <section className="group relative min-h-[520px] w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0B0F1A] shadow-2xl sm:aspect-[2.3/1] sm:min-h-[360px]">
+            <section className="group relative min-h-[520px] w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0B0F1A] shadow-2xl sm:aspect-[2.3/1] sm:min-h-[360px]">
               {/* Background */}
               <picture
                 className={`absolute inset-0 transition-all duration-700 ${
@@ -947,8 +947,8 @@ function Home() {
             </section>
 
             {/* ==================================================
-                TRENDING
-                ================================================== */}
+    TRENDING
+    ================================================== */}
 
             <div className="relative">
               <MovieSection
@@ -958,12 +958,11 @@ function Home() {
                 loading={loading}
               />
 
-              <WatchlistWaitingCard className="absolute -bottom-10 right-0 z-20 hidden lg:block" />
+              <WatchlistWaitingCard className="absolute -bottom-10 right-3 z-30 w-[min(85%,320px)] sm:right-5 lg:right-0" />
             </div>
-
             {/* ==================================================
-                POPULAR MOVIES
-                ================================================== */}
+    POPULAR MOVIES
+    ================================================== */}
 
             <div className="relative">
               <MovieSection
@@ -973,9 +972,8 @@ function Home() {
                 loading={loading}
               />
 
-              <SaveWhatYouLoveCard className="absolute -bottom-10 right-0 z-20 hidden lg:block" />
+              <SaveWhatYouLoveCard className="absolute -bottom-10 right-3 z-30 w-[min(85%,320px)] sm:right-5 lg:right-0" />
             </div>
-
             {/* ==================================================
                 POPULAR SERIES
                 ================================================== */}

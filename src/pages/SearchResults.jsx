@@ -173,7 +173,7 @@ function SearchResults() {
   const pageWindow = getPageWindow(page, ourTotalPages);
 
   return (
-    <div className="px-8 pb-12">
+    <div className="px-4 pb-12 sm:px-8">
       <h1 className="text-2xl font-bold text-white">Search Results</h1>
       <p className="mt-1 text-gray-400">
         Showing search results for: "
@@ -181,92 +181,100 @@ function SearchResults() {
       </p>
 
       {/* Filters + Sort + View toggle */}
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        {FILTERS.map((filter) => (
-          <button
-            key={filter}
-            type="button"
-            onClick={() => {
-              setActiveFilter(filter);
-              goToPage(1);
-            }}
-            className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
-              activeFilter === filter
-                ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-
-        <div className="relative ml-auto">
-          <button
-            type="button"
-            onClick={() => setSortMenuOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-white/10"
-          >
-            Sort by: {sortBy}
-            <IoChevronDown className="h-4 w-4" />
-          </button>
-
-          {sortMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setSortMenuOpen(false)}
-              />
-              <div className="absolute right-0 z-20 mt-2 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
-                {SORT_OPTIONS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => {
-                      setSortBy(option);
-                      setSortMenuOpen(false);
-                    }}
-                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
-                      sortBy === option
-                        ? "bg-white/10 text-white"
-                        : "text-gray-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+        {/* Filter buttons */}
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
+          <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => {
+                  setActiveFilter(filter);
+                  goToPage(1);
+                }}
+                className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+                  activeFilter === filter
+                    ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                    : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setViewMode("grid")}
-            aria-label="Grid view"
-            aria-pressed={viewMode === "grid"}
-            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-              viewMode === "grid"
-                ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
-            }`}
-          >
-            <IoGrid className="h-4 w-4" />
-          </button>
+        {/* Sort + View controls */}
+        <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-start">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setSortMenuOpen((v) => !v)}
+              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-white/10"
+            >
+              Sort by: {sortBy}
+              <IoChevronDown className="h-4 w-4" />
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setViewMode("list")}
-            aria-label="List view"
-            aria-pressed={viewMode === "list"}
-            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-              viewMode === "list"
-                ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
-            }`}
-          >
-            <IoList className="h-4 w-4" />
-          </button>
+            {sortMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setSortMenuOpen(false)}
+                />
+                <div className="absolute left-0 z-20 mt-2 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40 sm:right-0 sm:left-auto">
+                  {SORT_OPTIONS.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(option);
+                        setSortMenuOpen(false);
+                      }}
+                      className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
+                        sortBy === option
+                          ? "bg-white/10 text-white"
+                          : "text-gray-300 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              aria-label="Grid view"
+              aria-pressed={viewMode === "grid"}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                viewMode === "grid"
+                  ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                  : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
+              }`}
+            >
+              <IoGrid className="h-4 w-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              aria-label="List view"
+              aria-pressed={viewMode === "list"}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                viewMode === "list"
+                  ? "bg-linear-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                  : "border border-[#477DF7]/70 text-gray-300 hover:bg-white/10"
+              }`}
+            >
+              <IoList className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 

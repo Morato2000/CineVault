@@ -2,13 +2,17 @@ import { IoClose } from "react-icons/io5";
 import SidebarLink from "./SidebarLink";
 import brandLogo from "../../assets/icons/BRAND.svg";
 import { mainNavigation, secondaryNavigation } from "../../data/navigation";
-
+import { useAuth } from "../../context/AuthContext";
 function MobileDrawer({ open, onClose }) {
   if (!open) return null;
-
+  const { isLoggedIn } = useAuth();
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="absolute inset-0 bg-black/70" onClick={onClose} aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-black/70"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       <div className="relative flex h-full flex-col bg-[#080D17] px-4 pb-6 pt-5">
         <div className="flex items-center justify-between">
@@ -30,7 +34,12 @@ function MobileDrawer({ open, onClose }) {
           <nav className="space-y-4">
             {mainNavigation.map((item) => (
               <div key={item.path} onClick={onClose}>
-                <SidebarLink label={item.label} path={item.path} icon={item.icon} />
+                <SidebarLink
+                  label={item.label}
+                  path={item.path}
+                  icon={item.icon}
+                  locked={item.requiresAuth && !isLoggedIn}
+                />
               </div>
             ))}
           </nav>
@@ -43,6 +52,7 @@ function MobileDrawer({ open, onClose }) {
                   path={item.path}
                   icon={item.icon}
                   variant="secondary"
+                  locked={item.requiresAuth && !isLoggedIn}
                 />
               </div>
             ))}

@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { IoMailOutline, IoSend, IoChatbubblesOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
+import {
+  IoMailOutline,
+  IoSend,
+  IoChatbubblesOutline,
+  IoShieldCheckmarkOutline,
+} from "react-icons/io5";
 import BackButton from "../components/common/BackButton";
 import Toast from "../components/common/Toast";
 
-const SUBJECTS = [
-  "General Inquiry",
-  "Bug Report",
-  "Feature Request",
-  "Other",
-];
+const SUBJECTS = ["General Inquiry", "Bug Report", "Feature Request", "Other"];
 
 export default function MessageUs() {
   const [formData, setFormData] = useState({
@@ -47,9 +47,9 @@ export default function MessageUs() {
     const supportEmail = "odderratricstudio@gmail.com";
 
     const mailtoLink = `mailto:${supportEmail}?subject=${encodeURIComponent(
-      `[${subject}] from ${name}`
+      `[${subject}] from ${name}`,
     )}&body=${encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
     )}`;
 
     window.location.href = mailtoLink;
@@ -63,13 +63,13 @@ export default function MessageUs() {
 
         {/* Header */}
         <div className="mt-10 mb-12">
-          <span className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400">
+          <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
             <IoMailOutline size={17} />
             CineVault Support
           </span>
 
           <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
-            Let's talk<span className="text-red-500">.</span>
+            Let's talk<span className="text-blue-400">.</span>
           </h1>
 
           <p className="mt-4 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-400">
@@ -80,15 +80,14 @@ export default function MessageUs() {
 
         {/* Main Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.4fr] gap-8 lg:gap-12 items-stretch">
-
           {/* Left Information Panel */}
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#1d1d25] via-[#15151c] to-[#101014] p-7 sm:p-10 flex flex-col justify-between min-h-[420px]">
             {/* Decorative background */}
-            <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-red-600/10 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-red-600/10 blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
 
             <div className="relative z-10">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 <IoChatbubblesOutline size={30} />
               </div>
 
@@ -103,13 +102,11 @@ export default function MessageUs() {
 
               <div className="mt-10 space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="mt-1 text-red-400">
+                  <div className="mt-1 text-blue-400">
                     <IoMailOutline size={22} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">
-                      Email support
-                    </h3>
+                    <h3 className="font-semibold text-white">Email support</h3>
                     <p className="mt-1 text-sm text-gray-400 break-all">
                       odderratricstudio@gmail.com
                     </p>
@@ -117,7 +114,7 @@ export default function MessageUs() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="mt-1 text-red-400">
+                  <div className="mt-1 text-blue-400">
                     <IoShieldCheckmarkOutline size={22} />
                   </div>
                   <div>
@@ -126,7 +123,8 @@ export default function MessageUs() {
                     </h3>
                     <p className="mt-1 text-sm leading-6 text-gray-400">
                       Your message is sent through your email application.
-                      CineVault does not directly store this contact form submission.
+                      CineVault does not directly store this contact form
+                      submission.
                     </p>
                   </div>
                 </div>
@@ -156,7 +154,7 @@ export default function MessageUs() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-300">
-                    Your name <span className="text-red-400">*</span>
+                    Your name <span className="text-blue-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -164,14 +162,14 @@ export default function MessageUs() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter your name"
-                    className="w-full rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm text-white placeholder-gray-600 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+                    className="w-full rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm text-white placeholder-gray-600 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-300">
-                    Email address <span className="text-red-400">*</span>
+                    Email address <span className="text-blue-400">*</span>
                   </label>
                   <input
                     type="email"
@@ -179,7 +177,7 @@ export default function MessageUs() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="you@example.com"
-                    className="w-full rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm text-white placeholder-gray-600 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+                    className="w-full rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm text-white placeholder-gray-600 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                     required
                   />
                 </div>
@@ -194,7 +192,7 @@ export default function MessageUs() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm text-white outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+                  className="w-full rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                 >
                   {SUBJECTS.map((subject) => (
                     <option key={subject} value={subject}>
@@ -207,7 +205,7 @@ export default function MessageUs() {
               {/* Message */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-300">
-                  Your message <span className="text-red-400">*</span>
+                  Your message <span className="text-blue-400">*</span>
                 </label>
                 <textarea
                   name="message"
@@ -215,7 +213,7 @@ export default function MessageUs() {
                   onChange={handleChange}
                   placeholder="Tell us how we can help..."
                   rows={7}
-                  className="w-full resize-y rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm leading-6 text-white placeholder-gray-600 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+                  className="w-full resize-y rounded-xl border border-white/10 bg-[#101016] px-4 py-4 text-sm leading-6 text-white placeholder-gray-600 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                   required
                 />
               </div>
@@ -223,7 +221,7 @@ export default function MessageUs() {
               {/* Submit */}
               <button
                 type="submit"
-                className="group flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 font-semibold text-white shadow-lg shadow-red-600/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-red-600/30 active:translate-y-0"
+                className="group flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-4 font-semibold text-white shadow-lg shadow-blue-600/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-purple-600/30 active:translate-y-0"
               >
                 Send Message
                 <IoSend
@@ -233,7 +231,8 @@ export default function MessageUs() {
               </button>
 
               <p className="text-center text-xs leading-5 text-gray-500">
-                Your email application will open with your message ready to send.
+                Your email application will open with your message ready to
+                send.
               </p>
             </form>
           </div>

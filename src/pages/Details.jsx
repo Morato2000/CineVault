@@ -28,7 +28,8 @@ import {
 } from "react-icons/io5";
 
 import { FaXTwitter, FaWhatsapp, FaFacebook } from "react-icons/fa6";
-
+import useCoarsePointer from "../hooks/useCoarsePointer";
+import RatingSheet from "../components/common/RatingSheet";
 import RatingHearts from "../components/common/RatingHearts";
 import MovieSection from "../components/movies/MovieSection";
 import PosterFallback from "../components/common/PosterFallback";
@@ -127,6 +128,7 @@ function Details() {
 
   const { addNotification } = useNotifications();
   const { isLoggedIn } = useAuth();
+  const isTouch = useCoarsePointer();
 
   // ============================================================
   // STATE — TITLE DATA
@@ -691,6 +693,13 @@ function Details() {
     }
 
     if (myRating > 0) {
+      // On touch devices, open the sheet instead of removing the rating.
+      if (isTouch) {
+        setRatingMenuOpen(true);
+        return;
+      }
+
+      // Preserve the existing desktop behaviour.
       setRating(item, 0);
       addNotification({
         title: "Rating Removed",
@@ -710,7 +719,6 @@ function Details() {
 
     setRatingMenuOpen((value) => !value);
   };
-
   // ============================================================
   // WATCHLIST
   // ============================================================
@@ -760,7 +768,20 @@ function Details() {
 
     showToast(n > 0 ? `Rated ${n}/10` : "Rating removed");
   };
+  const handleRemoveRating = () => {
+    setRating(item, 0);
+    setRatingMenuOpen(false);
 
+    addNotification({
+      title: "Rating Removed",
+      message: title,
+      image: poster,
+      link: `/${mediaType}/${data.id}`,
+      dedupeKey: `rating-removed-${mediaType}-${data.id}`,
+    });
+
+    showToast("Rating removed");
+  };
   // ============================================================
   // NATIVE SHARE
   // ============================================================
@@ -874,7 +895,7 @@ function Details() {
                 </button>
 
                 {/* Rating popup */}
-                {ratingMenuOpen && (
+                {ratingMenuOpen && !isTouch && (
                   <>
                     <div
                       className="fixed inset-0 z-10"
@@ -894,6 +915,13 @@ function Details() {
                     </div>
                   </>
                 )}
+                <RatingSheet
+                  open={ratingMenuOpen && isTouch}
+                  initialValue={myRating}
+                  onSave={handleRate}
+                  onRemove={handleRemoveRating}
+                  onClose={() => setRatingMenuOpen(false)}
+                />
               </div>
 
               {/* ==============================================

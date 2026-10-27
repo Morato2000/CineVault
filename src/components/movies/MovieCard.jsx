@@ -42,7 +42,10 @@ function MovieCard({ movie, type, size = "md" }) {
   const mediaType = type || (movie.media_type === "tv" ? "TV Series" : "Movie");
   const linkMediaType =
     movie.media_type || (type === "TV Series" ? "tv" : "movie");
-  const rating = movie.vote_average?.toFixed(1);
+  const rating =
+    typeof movie.vote_average === "number" && movie.vote_average > 0
+      ? movie.vote_average.toFixed(1)
+      : null;
   const myRating = getRating(movie.id, linkMediaType);
 
   const startYear = (movie.release_date || movie.first_air_date || "").slice(
@@ -127,9 +130,11 @@ function MovieCard({ movie, type, size = "md" }) {
           >
             <img src={tmdbStar} alt="" className="h-4 w-4 shrink-0" />
             <span
-              className={`${s.ratingText} font-semibold leading-none text-white`}
+              className={`${
+                rating ? s.ratingText : "text-xs"
+              } font-semibold leading-none text-white`}
             >
-              {rating}
+              {rating || "N/A"}
             </span>
           </div>
         </div>

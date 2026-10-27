@@ -591,7 +591,10 @@ function Details() {
   // RATING / RUNTIME
   // ============================================================
 
-  const rating = data.vote_average?.toFixed(1);
+  const rating =
+    typeof data.vote_average === "number" && data.vote_average > 0
+      ? data.vote_average.toFixed(1)
+      : "N/A";
 
   const runtime = data.runtime
     ? `${data.runtime} Mins`

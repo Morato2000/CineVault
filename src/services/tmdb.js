@@ -405,7 +405,7 @@ export async function getAnime() {
 
 export async function getKDrama() {
   const data = await fetchCached(
-    `${BASE_URL}/discover/tv?with_origin_country=KR&sort_by=popularity.desc`,
+    `${BASE_URL}/discover/tv?with_origin_country=KR&with_genres=18&sort_by=popularity.desc`,
     CACHE_TTL.GENRE,
   );
 

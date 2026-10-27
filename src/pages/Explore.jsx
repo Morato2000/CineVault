@@ -17,6 +17,8 @@ import { useExploreSection } from "../hooks/useExploreSection";
 import {
   getTrendingAllToday,
   getTopRatedAll,
+  getTopRatedMovies,
+  getTopRatedSeries,
   getNewReleases,
   getByGenre,
   getAnime,
@@ -44,9 +46,10 @@ function matchesTypeFilter(item, filter) {
 
 function matchesGenre(item, genre) {
   if (!genre) return true;
+
   return (
-    item.genre_ids?.includes(genre.movieId) ||
-    item.genre_ids?.includes(genre.tvId)
+    (genre.movieId != null && item.genre_ids?.includes(genre.movieId)) ||
+    (genre.tvId != null && item.genre_ids?.includes(genre.tvId))
   );
 }
 
@@ -100,8 +103,25 @@ function Explore() {
     matchesGenre,
     [],
   );
-  const topRated = useExploreSection(
-    getTopRatedAll,
+  // const topRated = useExploreSection(
+  //   getTopRatedAll,
+  //   activeFilter,
+  //   activeGenre,
+  //   matchesTypeFilter,
+  //   matchesGenre,
+  //   [],
+  // );
+  const topRatedMovies = useExploreSection(
+    getTopRatedMovies,
+    activeFilter,
+    activeGenre,
+    matchesTypeFilter,
+    matchesGenre,
+    [],
+  );
+
+  const topRatedShows = useExploreSection(
+    getTopRatedSeries,
     activeFilter,
     activeGenre,
     matchesTypeFilter,
@@ -140,7 +160,7 @@ function Explore() {
     matchesGenre,
     [],
   );
-  const horror = useExploreSection(
+  const mystery = useExploreSection(
     () => getByGenre(27, 9648),
     activeFilter,
     activeGenre,
@@ -181,53 +201,38 @@ function Explore() {
         transition={{ duration: 0.35, ease: "easeOut" }}
         className="mt-5"
       >
-        {/* TYPE FILTERS */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:overflow-visible sm:pb-0">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              onClick={() => setActiveFilter(filter)}
-              aria-pressed={activeFilter === filter}
-              className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] ${
-                activeFilter === filter
-                  ? "bg-gradient-to-b from-[#A855F7] to-[#3B82F6] text-white"
-                  : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
-              }`}
+        {/* MOBILE FILTERS */}
+        <div className="flex items-center justify-between gap-3 sm:hidden">
+          {/* CONTENT TYPE DROPDOWN */}
+          <div className="relative w-[120px] shrink-0">
+            <select
+              value={activeFilter}
+              onChange={(e) => setActiveFilter(e.target.value)}
+              aria-label="Filter by content type"
+              className="w-full appearance-none rounded-full border border-[#477DF7]/70 bg-[#0B0F1A] py-2.5 pl-4 pr-9 text-sm font-semibold text-gray-200 outline-none transition-colors focus:border-purple-400"
             >
-              {filter}
-            </button>
-          ))}
-        </div>
+              {FILTERS.map((filter) => (
+                <option
+                  key={filter}
+                  value={filter}
+                  className="bg-[#0B0F1A] text-white"
+                >
+                  {filter}
+                </option>
+              ))}
+            </select>
 
-        {/* GENRE FILTER AND ACTIVE GENRE */}
-        <div className="mt-3 flex items-center justify-between gap-3 sm:mt-0 sm:inline-flex sm:align-middle sm:ml-auto sm:gap-3">
-          <AnimatePresence>
-            {activeGenre && (
-              <motion.button
-                key={activeGenre.label}
-                type="button"
-                onClick={() => setActiveGenre(null)}
-                initial={{ opacity: 0, scale: 0.85, x: -8 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.85, x: -8 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                whileTap={{ scale: 0.95 }}
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] px-4 py-2 text-sm font-semibold text-white"
-              >
-                {activeGenre.label}
-                <IoClose className="h-4 w-4" />
-              </motion.button>
-            )}
-          </AnimatePresence>
+            <IoOptionsOutline className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-gray-300" />
+          </div>
 
-          <div className="relative ml-auto sm:ml-0">
+          {/* GENRE FILTER */}
+          <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => setGenreMenuOpen((v) => !v)}
               aria-haspopup="listbox"
               aria-expanded={genreMenuOpen}
-              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-5 py-2 text-sm font-semibold text-gray-200 hover:bg-white/10"
+              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-5 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
             >
               <IoOptionsOutline className="h-4 w-4" />
               Filter
@@ -242,7 +247,7 @@ function Explore() {
 
                 <div
                   role="listbox"
-                  className="animate-pop origin-top-right absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
+                  className="animate-pop absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
                 >
                   <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Genre
@@ -272,6 +277,118 @@ function Explore() {
             )}
           </div>
         </div>
+
+        {/* DESKTOP FILTERS — RESTORED ORIGINAL LAYOUT */}
+        <div className="hidden items-center gap-2 sm:flex">
+          <div className="flex items-center gap-2">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setActiveFilter(filter)}
+                aria-pressed={activeFilter === filter}
+                className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] ${
+                  activeFilter === filter
+                    ? "bg-gradient-to-b from-[#A855F7] to-[#3B82F6] text-white"
+                    : "border border-[#477DF7]/70 text-gray-200 hover:bg-white/10"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          <div className="ml-auto flex items-center gap-3">
+            <AnimatePresence>
+              {activeGenre && (
+                <motion.button
+                  key={activeGenre.label}
+                  type="button"
+                  onClick={() => setActiveGenre(null)}
+                  initial={{ opacity: 0, scale: 0.85, x: -8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.85, x: -8 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] px-4 py-2 text-sm font-semibold text-white"
+                >
+                  {activeGenre.label}
+                  <IoClose className="h-4 w-4" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setGenreMenuOpen((v) => !v)}
+                aria-haspopup="listbox"
+                aria-expanded={genreMenuOpen}
+                className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-5 py-2 text-sm font-semibold text-gray-200 hover:bg-white/10"
+              >
+                <IoOptionsOutline className="h-4 w-4" />
+                Filter
+              </button>
+
+              {genreMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setGenreMenuOpen(false)}
+                  />
+
+                  <div
+                    role="listbox"
+                    className="animate-pop absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
+                  >
+                    <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Genre
+                    </p>
+
+                    {GENRES.map((genre) => (
+                      <button
+                        key={genre.label}
+                        type="button"
+                        role="option"
+                        aria-selected={activeGenre?.label === genre.label}
+                        onClick={() => {
+                          setActiveGenre(genre);
+                          setGenreMenuOpen(false);
+                        }}
+                        className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
+                          activeGenre?.label === genre.label
+                            ? "bg-white/10 text-white"
+                            : "text-gray-300 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {genre.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ACTIVE GENRE — MOBILE */}
+        <AnimatePresence>
+          {activeGenre && (
+            <motion.button
+              key={`mobile-${activeGenre.label}`}
+              type="button"
+              onClick={() => setActiveGenre(null)}
+              initial={{ opacity: 0, scale: 0.9, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -5 }}
+              transition={{ duration: 0.18 }}
+              className="mt-3 flex items-center gap-1.5 rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] px-4 py-2 text-sm font-semibold text-white sm:hidden"
+            >
+              {activeGenre.label}
+              <IoClose className="h-4 w-4" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Active filter summary */}
@@ -329,7 +446,7 @@ function Explore() {
         loading={newReleases.loading}
         error={newReleases.error}
       />
-      <MovieSection
+      {/* <MovieSection
         title="Top Rated Shows"
         icon={IoStar}
         iconClass="text-amber-400"
@@ -337,6 +454,25 @@ function Explore() {
         movies={topRated.movies}
         loading={topRated.loading}
         error={topRated.error}
+      /> */}
+      <MovieSection
+        title="Top Rated Movies"
+        icon={IoStar}
+        iconClass="text-amber-400"
+        emptyMessage={emptyMessage}
+        movies={topRatedMovies.movies}
+        loading={topRatedMovies.loading}
+        error={topRatedMovies.error}
+      />
+
+      <MovieSection
+        title="Top Rated Shows"
+        icon={IoStar}
+        iconClass="text-amber-400"
+        emptyMessage={emptyMessage}
+        movies={topRatedShows.movies}
+        loading={topRatedShows.loading}
+        error={topRatedShows.error}
       />
       <MovieSection
         title="Anime"
@@ -371,13 +507,13 @@ function Explore() {
         error={comedy.error}
       />
       <MovieSection
-        title="Horror"
+        title="Mystery"
         icon={IoSkull}
         iconClass="text-gray-300"
         emptyMessage={emptyMessage}
-        movies={horror.movies}
-        loading={horror.loading}
-        error={horror.error}
+        movies={mystery.movies}
+        loading={mystery.loading}
+        error={mystery.error}
       />
       <MovieSection
         title="Sci-Fi"

@@ -42,7 +42,9 @@ function MobileHeader({ onMenuClick }) {
   const wrapperRef = useRef(null);
 
   const debouncedQuery = useDebouncedValue(query, 400);
-
+  const searching =
+    query.trim().length >= 2 &&
+    (query.trim() !== debouncedQuery.trim() || loading);
   useEffect(() => {
     setQuery("");
     setResults([]);
@@ -168,7 +170,7 @@ function MobileHeader({ onMenuClick }) {
                     onClick={() => setNotifMenuOpen(false)}
                   />
 
-                 <div className="animate-pop origin-top-right absolute right-0 top-11 z-20 w-[calc(100vw-24px)] max-w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+                  <div className="animate-pop origin-top-right absolute right-0 top-11 z-20 w-[calc(100vw-24px)] max-w-80 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
                     <div className="flex items-center justify-between px-2 pb-3">
                       <h3 className="text-sm font-semibold text-white">
                         Notifications
@@ -283,7 +285,7 @@ function MobileHeader({ onMenuClick }) {
                     onClick={() => setAccountMenuOpen(false)}
                   />
 
-                 <div className="animate-pop origin-top-right absolute right-0 top-11 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                  <div className="animate-pop origin-top-right absolute right-0 top-11 z-20 w-44 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                     <div className="border-b border-white/10 px-3 py-2.5">
                       <p className="truncate text-sm font-semibold text-white">
                         {profile?.displayName || "User"}
@@ -375,14 +377,20 @@ function MobileHeader({ onMenuClick }) {
         </div>
 
         {isOpen && query.trim().length >= 2 && (
-        <div className="animate-pop origin-top absolute left-0 right-0 top-14 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+          <div className="animate-pop origin-top absolute left-0 right-0 top-14 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40">
+            {searching && (
+              <p className="px-3 py-4 text-center text-sm text-gray-400">
+                Searching...
+              </p>
+            )}
+
             {results.length === 0 && !loading && (
               <p className="px-3 py-4 text-center text-sm text-gray-400">
                 No results for "{query}"
               </p>
             )}
 
-            {results.map((item) => {
+           {!searching && results.map((item) => {
               const title = item.title || item.name;
               const date = item.release_date || item.first_air_date;
               const year = date ? date.slice(0, 4) : "";
@@ -426,7 +434,7 @@ function MobileHeader({ onMenuClick }) {
               );
             })}
 
-            {results.length > 0 && (
+           {!searching && results.length > 0 && (
               <button
                 type="button"
                 onClick={goToFullResults}

@@ -1123,7 +1123,7 @@ function Details() {
 
                     {rating}
 
-                    <span className="font-medium text-gray-300">IMDB</span>
+                    <span className="font-medium text-gray-300">TMDB</span>
                   </span>
                 )}
 

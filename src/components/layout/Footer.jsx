@@ -5,30 +5,26 @@ import { mainNavigation } from "../../data/navigation";
 
 const supportLinks = [
   { label: "Help Center", path: "/help" },
-  { label: "Donate", path: "/donate" },
-  { label: "Contact us", path: "/contact" },
-  { label: "Privacy Policy", path: "/privacy" },
+  { label: "Contact us", path: "/message-us" },
+  { label: "Privacy Policy", path: "/privacy-policy" },
 ];
 
 const socialLinks = [
   {
     label: "Discord",
-    href: "#",
     icon: FaDiscord,
-    className: "bg-[#5865F2] text-white",
+    className: "bg-[#5865F2]/40 text-white/60",
   },
   {
     label: "X",
-    href: "#",
     icon: FaXTwitter,
-    className: "bg-white/10 text-white",
+    className: "bg-white/10 text-white/60",
   },
   {
     label: "Instagram",
-    href: "#",
     icon: FaInstagram,
     className:
-      "bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 text-white",
+      "bg-gradient-to-br from-yellow-400/40 via-pink-500/40 to-purple-600/40 text-white/60",
   },
 ];
 
@@ -89,24 +85,30 @@ function Footer() {
 
         {/* Connect */}
         <div className="md:pl-8">
-          <h3 className="text-sm font-bold text-purple-400">Connect</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-purple-400">Connect</h3>
+            <span className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2 py-0.5 text-[10px] font-medium text-purple-300">
+              Coming Soon
+            </span>
+          </div>
+
           <div className="mt-4 flex gap-3">
-            {socialLinks.map(({ label, href, icon: Icon, className }) => (
-              <a
+            {socialLinks.map(({ label, icon: Icon, className }) => (
+              <div
                 key={label}
-                href={href}
-                aria-label={label}
-                className={`flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105 ${className}`}
+                aria-label={`${label} — coming soon`}
+                title={`${label} — coming soon`}
+                className={`flex h-10 w-10 cursor-default items-center justify-center rounded-xl ${className}`}
               >
                 <Icon className="h-5 w-5" />
-              </a>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
       <div className="border-t border-white/10 px-10 py-5 text-center text-xs text-gray-500">
-        © 2026 CineVault. All rights reserved.
+        © 2026 CineVault. All rights reserved. A product of Odderatic Studio.
       </div>
     </footer>
   );

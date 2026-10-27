@@ -42,6 +42,7 @@ function TopNav() {
     useNotifications();
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef(null);
@@ -59,14 +60,24 @@ function TopNav() {
   useEffect(() => {
     setActiveIndex(-1);
 
-    if (debouncedQuery.trim().length < 2) {
+    if (query.trim().length < 2) {
       setResults([]);
       setTotalResults(0);
+      setLoading(false);
+      setSearching(false);
+      return;
+    }
+
+    if (query.trim() !== debouncedQuery.trim()) {
+      setLoading(true);
+      setSearching(true);
       return;
     }
 
     let cancelled = false;
+
     setLoading(true);
+    setSearching(true);
 
     searchMulti(debouncedQuery)
       .then((data) => {
@@ -82,13 +93,16 @@ function TopNav() {
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setSearching(false);
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery]);
+  }, [query, debouncedQuery]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -191,13 +205,19 @@ function TopNav() {
               role="listbox"
               className="animate-pop origin-top absolute left-0 right-0 top-16 z-30 rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-3 shadow-xl shadow-black/40"
             >
-              {results.length === 0 && !loading && (
+              {searching && (
+                <p className="px-3 py-4 text-center text-sm text-gray-400">
+                  Searching...
+                </p>
+              )}
+
+              {results.length === 0 && !searching && !loading && (
                 <p className="px-3 py-4 text-center text-sm text-gray-400">
                   No results for "{query}"
                 </p>
               )}
 
-              {results.map((item, index) => {
+             {!searching && results.map((item, index) => {
                 const title = item.title || item.name;
                 const date = item.release_date || item.first_air_date;
                 const year = date ? date.slice(0, 4) : "";
@@ -242,7 +262,7 @@ function TopNav() {
                 );
               })}
 
-              {results.length > 0 && (
+            {!searching && results.length > 0 && (
                 <button
                   type="button"
                   onClick={goToFullResults}

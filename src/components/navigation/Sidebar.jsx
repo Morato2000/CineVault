@@ -1,14 +1,10 @@
-
 import { IoContractOutline, IoExpandOutline } from "react-icons/io5";
 
 import SidebarLink from "./SidebarLink";
 
 import brandLogo from "../../assets/icons/BRAND.svg";
 
-import {
-  mainNavigation,
-  secondaryNavigation,
-} from "../../data/navigation";
+import { mainNavigation, secondaryNavigation } from "../../data/navigation";
 
 import { Link } from "react-router-dom";
 
@@ -24,12 +20,13 @@ function Sidebar({ collapsed, onToggle }) {
       type="button"
       onClick={onToggle}
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-indigo-500/70 text-purple-400 hover:bg-white/10"
+      title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-400/60 bg-indigo-500/10 text-purple-300 shadow-sm shadow-indigo-500/10 transition-all duration-200 hover:border-purple-400 hover:bg-indigo-500/20 hover:text-white hover:shadow-md hover:shadow-purple-500/20 active:scale-95"
     >
       {collapsed ? (
-        <IoExpandOutline className="h-4 w-4" />
+        <IoExpandOutline className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
       ) : (
-        <IoContractOutline className="h-4 w-4" />
+        <IoContractOutline className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
       )}
     </button>
   );
@@ -52,11 +49,7 @@ function Sidebar({ collapsed, onToggle }) {
           </div>
         ) : (
           <>
-            <img
-              src={brandLogo}
-              alt="CineVault"
-              className="h-auto w-44"
-            />
+            <img src={brandLogo} alt="CineVault" className="h-auto w-44" />
 
             <p className="mt-1 text-xs tracking-widest text-gray-400">
               MOVIES • ANIME • MEMORIES
@@ -78,8 +71,7 @@ function Sidebar({ collapsed, onToggle }) {
             collapsed={collapsed}
             locked={
               !isLoggedIn &&
-              (item.path === "/watchlist" ||
-                item.path === "/stats")
+              (item.path === "/watchlist" || item.path === "/stats")
             }
           />
         ))}
@@ -88,9 +80,7 @@ function Sidebar({ collapsed, onToggle }) {
       {/* Secondary Navigation */}
       <nav
         className={`mt-auto flex flex-col items-center space-y-2 pb-2 ${
-          collapsed
-            ? "border-t border-indigo-500/30 pt-4"
-            : ""
+          collapsed ? "border-t border-indigo-500/30 pt-4" : ""
         }`}
       >
         {collapsed ? (
@@ -103,33 +93,25 @@ function Sidebar({ collapsed, onToggle }) {
                 icon={item.icon}
                 variant="secondary"
                 collapsed={collapsed}
-                locked={
-                  !isLoggedIn && item.label === "Settings"
-                }
+                locked={!isLoggedIn && item.label === "Settings"}
               />
             ))}
 
-            <div className="flex justify-center pt-2">
+            <div className="flex flex-col items-center gap-1 pt-2">
               {ToggleButton}
+              <span className="text-[10px] font-medium tracking-wide text-gray-500">
+                Expand
+              </span>
             </div>
           </>
         ) : (
           <>
             {/* Settings + toggle, same row */}
-            <div className="flex w-full items-center justify-between">
-              <SidebarLink
-                label={settingsItem.label}
-                path={settingsItem.path}
-                icon={settingsItem.icon}
-                variant="secondary"
-                collapsed={false}
-                locked={
-                  !isLoggedIn &&
-                  settingsItem.label === "Settings"
-                }
-              />
-
+            <div className="group relative">
               {ToggleButton}
+              <span className="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md border border-indigo-500/30 bg-[#0B0F1A] px-2.5 py-1.5 text-xs text-gray-300 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                Collapse sidebar
+              </span>
             </div>
 
             {restSecondary.map((item) => (

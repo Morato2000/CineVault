@@ -46,22 +46,19 @@ async function fetchCached(url, ttl) {
     promise: null,
   };
 
- const requestUrl = new URL(url, window.location.origin);
+  const requestUrl = new URL(url, window.location.origin);
 
-const tmdbPath = requestUrl.pathname.replace(
-  /^\/api\/tmdb\/?/,
-  ""
-);
+  const tmdbPath = requestUrl.pathname.replace(/^\/api\/tmdb\/?/, "");
 
-const proxyUrl = new URL(BASE_URL, window.location.origin);
+  const proxyUrl = new URL(BASE_URL, window.location.origin);
 
-proxyUrl.searchParams.set("path", tmdbPath);
+  proxyUrl.searchParams.set("path", tmdbPath);
 
-requestUrl.searchParams.forEach((value, key) => {
-  proxyUrl.searchParams.append(key, value);
-});
+  requestUrl.searchParams.forEach((value, key) => {
+    proxyUrl.searchParams.append(key, value);
+  });
 
-const request = fetch(proxyUrl).then(async (response) => {
+  const request = fetch(proxyUrl).then(async (response) => {
     if (!response.ok) {
       throw new Error(
         `TMDB request failed (${response.status}): ${
@@ -196,14 +193,15 @@ export async function getTrendingAllToday() {
 // ============================================
 
 export async function getTopRatedSeries() {
-  const data = await fetchCached(
-    `${BASE_URL}/tv/top_rated`,
-    CACHE_TTL.TOP_RATED,
-  );
+  const data = await fetchCached(`${BASE_URL}/tv/top_rated`, CACHE_TTL.GENRE);
 
-  return addTvDetails(data.results);
+  const series = data.results.map((item) => ({
+    ...item,
+    media_type: "tv",
+  }));
+
+  return addTvDetails(series);
 }
-
 export async function getTopRatedMovies() {
   const data = await fetchCached(
     `${BASE_URL}/movie/top_rated`,

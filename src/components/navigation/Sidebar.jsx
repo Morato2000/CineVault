@@ -107,11 +107,22 @@ function Sidebar({ collapsed, onToggle }) {
         ) : (
           <>
             {/* Settings + toggle, same row */}
-            <div className="group relative">
-              {ToggleButton}
-              <span className="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md border border-indigo-500/30 bg-[#0B0F1A] px-2.5 py-1.5 text-xs text-gray-300 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                Collapse sidebar
-              </span>
+            <div className="flex w-full items-center justify-between">
+              <SidebarLink
+                label={settingsItem.label}
+                path={settingsItem.path}
+                icon={settingsItem.icon}
+                variant="secondary"
+                collapsed={false}
+                locked={!isLoggedIn && settingsItem.label === "Settings"}
+              />
+
+              <div className="group relative">
+                {ToggleButton}
+                <span className="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md border border-indigo-500/30 bg-[#0B0F1A] px-2.5 py-1.5 text-xs text-gray-300 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  Collapse sidebar
+                </span>
+              </div>
             </div>
 
             {restSecondary.map((item) => (

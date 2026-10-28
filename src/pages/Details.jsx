@@ -1206,7 +1206,7 @@ function Details() {
           INFORMATION GRID
       ======================================================== */}
 
-      <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="mt-14 grid grid-cols-1 gap-5 lg:grid-cols-[1.05fr_1.15fr_1.2fr] xl:gap-6">
         {/* ======================================================
             OVERVIEW
         ====================================================== */}
@@ -1214,7 +1214,7 @@ function Details() {
         <div className="rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-5">
           <h2 className="font-bold text-white">Overview</h2>
 
-          <p className="mt-3 text-sm leading-relaxed text-gray-400">
+          <p className="mt-3 text-[15px] leading-7 text-gray-300">
             {displayedOverview || "No overview available."}
           </p>
 
@@ -1274,7 +1274,7 @@ function Details() {
                       </div>
                     )}
 
-                    <p className="mt-2 truncate text-sm font-bold text-white">
+                    <p className="mt-2 min-h-10 line-clamp-2 break-words text-sm leading-5 font-bold text-white">
                       {actor.name}
                     </p>
 

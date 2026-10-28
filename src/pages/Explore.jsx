@@ -28,6 +28,12 @@ import {
 
 const FILTERS = ["All", "Anime", "Movies", "TV Series"];
 
+const SORT_OPTIONS = [
+  { label: "Recently Added", value: "recent" },
+  { label: "Release Date", value: "release" },
+  { label: "Highest Rated", value: "rating" },
+  { label: "Title (A–Z)", value: "title" },
+];
 function isAnime(item) {
   const isAnimation = item.genre_ids?.includes(16);
   const isJapanese =
@@ -61,7 +67,8 @@ function Explore() {
   const activeGenre = GENRES.find((g) => g.label === activeGenreLabel) || null;
 
   const [genreMenuOpen, setGenreMenuOpen] = useState(false);
-
+  const [sortBy, setSortBy] = useState("recent");
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const setActiveFilter = (filter) => {
     const next = new URLSearchParams(searchParams);
     if (filter === "All") {
@@ -81,7 +88,32 @@ function Explore() {
     }
     setSearchParams(next);
   };
+  const sortMovies = (movies) => {
+    const sorted = [...movies];
 
+    switch (sortBy) {
+      case "release":
+        return sorted.sort(
+          (a, b) =>
+            new Date(b.release_date || b.first_air_date || 0) -
+            new Date(a.release_date || a.first_air_date || 0),
+        );
+
+      case "rating":
+        return sorted.sort(
+          (a, b) => (b.vote_average || 0) - (a.vote_average || 0),
+        );
+
+      case "title":
+        return sorted.sort((a, b) =>
+          (a.title || a.name || "").localeCompare(b.title || b.name || ""),
+        );
+
+      case "recent":
+      default:
+        return sorted;
+    }
+  };
   const clearAllFilters = () => setSearchParams({});
 
   const hasActiveFilters = activeFilter !== "All" || activeGenre !== null;
@@ -277,7 +309,47 @@ function Explore() {
             )}
           </div>
         </div>
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setSortMenuOpen((v) => !v)}
+            aria-haspopup="listbox"
+            aria-expanded={sortMenuOpen}
+            className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-3 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
+          >
+            <IoOptionsOutline className="h-4 w-4" />
+            Sort
+          </button>
 
+          {sortMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setSortMenuOpen(false)}
+              />
+
+              <div className="animate-pop absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                {SORT_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setSortBy(option.value);
+                      setSortMenuOpen(false);
+                    }}
+                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
+                      sortBy === option.value
+                        ? "bg-white/10 text-white"
+                        : "text-gray-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         {/* DESKTOP FILTERS — RESTORED ORIGINAL LAYOUT */}
         <div className="hidden items-center gap-2 sm:flex">
           <div className="flex items-center gap-2">
@@ -368,6 +440,47 @@ function Explore() {
                 </>
               )}
             </div>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setSortMenuOpen((v) => !v)}
+                aria-haspopup="listbox"
+                aria-expanded={sortMenuOpen}
+                className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-5 py-2 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
+              >
+                <IoOptionsOutline className="h-4 w-4" />
+                Sort
+              </button>
+
+              {sortMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setSortMenuOpen(false)}
+                  />
+
+                  <div className="animate-pop absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                    {SORT_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(option.value);
+                          setSortMenuOpen(false);
+                        }}
+                        className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
+                          sortBy === option.value
+                            ? "bg-white/10 text-white"
+                            : "text-gray-300 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -433,7 +546,7 @@ function Explore() {
         icon={IoFlame}
         iconClass="text-orange-500"
         emptyMessage={emptyMessage}
-        movies={trending.movies}
+        movies={sortMovies(trending.movies)}
         loading={trending.loading}
         error={trending.error}
       />
@@ -442,7 +555,7 @@ function Explore() {
         icon={IoSparkles}
         iconClass="text-blue-400"
         emptyMessage={emptyMessage}
-        movies={newReleases.movies}
+        movies={sortMovies(newReleases.movies)}
         loading={newReleases.loading}
         error={newReleases.error}
       />
@@ -460,7 +573,7 @@ function Explore() {
         icon={IoStar}
         iconClass="text-amber-400"
         emptyMessage={emptyMessage}
-        movies={topRatedMovies.movies}
+        movies={sortMovies(topRatedMovies.movies)}
         loading={topRatedMovies.loading}
         error={topRatedMovies.error}
       />
@@ -470,14 +583,14 @@ function Explore() {
         icon={IoStar}
         iconClass="text-amber-400"
         emptyMessage={emptyMessage}
-        movies={topRatedShows.movies}
+        movies={sortMovies(topRatedShows.movies)}
         loading={topRatedShows.loading}
         error={topRatedShows.error}
       />
       <MovieSection
         title="Anime"
         emptyMessage={emptyMessage}
-        movies={anime.movies}
+        movies={sortMovies(anime.movies)}
         loading={anime.loading}
         error={anime.error}
       />
@@ -486,7 +599,7 @@ function Explore() {
         icon={IoLanguage}
         iconClass="text-pink-400"
         emptyMessage={emptyMessage}
-        movies={kdrama.movies}
+        movies={sortMovies(kdrama.movies)}
         loading={kdrama.loading}
         error={kdrama.error}
       />
@@ -495,14 +608,14 @@ function Explore() {
         icon={IoRocket}
         iconClass="text-red-400"
         emptyMessage={emptyMessage}
-        movies={action.movies}
+        movies={sortMovies(action.movies)}
         loading={action.loading}
         error={action.error}
       />
       <MovieSection
         title="Comedy"
         emptyMessage={emptyMessage}
-        movies={comedy.movies}
+        movies={sortMovies(comedy.movies)}
         loading={comedy.loading}
         error={comedy.error}
       />
@@ -511,7 +624,7 @@ function Explore() {
         icon={IoSkull}
         iconClass="text-gray-300"
         emptyMessage={emptyMessage}
-        movies={mystery.movies}
+        movies={sortMovies(mystery.movies)}
         loading={mystery.loading}
         error={mystery.error}
       />
@@ -520,7 +633,7 @@ function Explore() {
         icon={IoRocket}
         iconClass="text-cyan-400"
         emptyMessage={emptyMessage}
-        movies={scifi.movies}
+        movies={sortMovies(scifi.movies)}
         loading={scifi.loading}
         error={scifi.error}
       />
@@ -529,7 +642,7 @@ function Explore() {
         icon={IoHeart}
         iconClass="text-rose-400"
         emptyMessage={emptyMessage}
-        movies={romance.movies}
+        movies={sortMovies(romance.movies)}
         loading={romance.loading}
         error={romance.error}
       />

@@ -253,7 +253,6 @@ function Explore() {
                 </option>
               ))}
             </select>
-
             <IoOptionsOutline className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-gray-300" />
           </div>
 
@@ -264,7 +263,7 @@ function Explore() {
               onClick={() => setGenreMenuOpen((v) => !v)}
               aria-haspopup="listbox"
               aria-expanded={genreMenuOpen}
-              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-5 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
+              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-4 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
             >
               <IoOptionsOutline className="h-4 w-4" />
               Filter
@@ -276,7 +275,6 @@ function Explore() {
                   className="fixed inset-0 z-10"
                   onClick={() => setGenreMenuOpen(false)}
                 />
-
                 <div
                   role="listbox"
                   className="animate-pop absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
@@ -284,7 +282,6 @@ function Explore() {
                   <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Genre
                   </p>
-
                   {GENRES.map((genre) => (
                     <button
                       key={genre.label}
@@ -308,49 +305,51 @@ function Explore() {
               </>
             )}
           </div>
-        </div>
-        <div className="relative shrink-0">
-          <button
-            type="button"
-            onClick={() => setSortMenuOpen((v) => !v)}
-            aria-haspopup="listbox"
-            aria-expanded={sortMenuOpen}
-            className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-3 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
-          >
-            <IoOptionsOutline className="h-4 w-4" />
-            Sort
-          </button>
 
-          {sortMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setSortMenuOpen(false)}
-              />
+          {/* MOBILE SORT */}
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setSortMenuOpen((v) => !v)}
+              aria-haspopup="listbox"
+              aria-expanded={sortMenuOpen}
+              className="flex items-center gap-2 rounded-full border border-[#477DF7]/70 px-3 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/10"
+            >
+              <IoOptionsOutline className="h-4 w-4" />
+              Sort
+            </button>
 
-              <div className="animate-pop absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
-                {SORT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      setSortBy(option.value);
-                      setSortMenuOpen(false);
-                    }}
-                    className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
-                      sortBy === option.value
-                        ? "bg-white/10 text-white"
-                        : "text-gray-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+            {sortMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setSortMenuOpen(false)}
+                />
+                <div className="animate-pop absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
+                  {SORT_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(option.value);
+                        setSortMenuOpen(false);
+                      }}
+                      className={`block w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors ${
+                        sortBy === option.value
+                          ? "bg-white/10 text-white"
+                          : "text-gray-300 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-        {/* DESKTOP FILTERS — RESTORED ORIGINAL LAYOUT */}
+
+        {/* DESKTOP FILTERS */}
         <div className="hidden items-center gap-2 sm:flex">
           <div className="flex items-center gap-2">
             {FILTERS.map((filter) => (
@@ -390,6 +389,7 @@ function Explore() {
               )}
             </AnimatePresence>
 
+            {/* DESKTOP GENRE FILTER */}
             <div className="relative">
               <button
                 type="button"
@@ -408,7 +408,6 @@ function Explore() {
                     className="fixed inset-0 z-10"
                     onClick={() => setGenreMenuOpen(false)}
                   />
-
                   <div
                     role="listbox"
                     className="animate-pop absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40"
@@ -416,7 +415,6 @@ function Explore() {
                     <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                       Genre
                     </p>
-
                     {GENRES.map((genre) => (
                       <button
                         key={genre.label}
@@ -440,6 +438,8 @@ function Explore() {
                 </>
               )}
             </div>
+
+            {/* DESKTOP SORT */}
             <div className="relative">
               <button
                 type="button"
@@ -458,7 +458,6 @@ function Explore() {
                     className="fixed inset-0 z-10"
                     onClick={() => setSortMenuOpen(false)}
                   />
-
                   <div className="animate-pop absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-2xl border border-indigo-500/30 bg-[#0B0F1A] p-2 shadow-xl shadow-black/40">
                     {SORT_OPTIONS.map((option) => (
                       <button
@@ -483,7 +482,6 @@ function Explore() {
             </div>
           </div>
         </div>
-
         {/* ACTIVE GENRE — MOBILE */}
         <AnimatePresence>
           {activeGenre && (

@@ -339,7 +339,7 @@ function Home() {
     // Store discovery timestamps per account and category.
     // localStorage keeps the throttle across page reloads.
     const canRunDiscovery = (category) => {
-      const key = `cinevault-discovery-${user.id}-${category}`;
+      const key = `Cinetome-discovery-${user.id}-${category}`;
 
       try {
         const lastRun = Number(localStorage.getItem(key) || 0);
@@ -551,7 +551,7 @@ function Home() {
 
             addNotification({
               title: `New release: ${title}`,
-              message: "Now available to discover on CineVault",
+              message: "Now available to discover on Cinetome",
               image: poster(release.poster_path),
               link: `/${mediaType}/${release.id}`,
               dedupeKey: `new-release-${mediaType}-${release.id}`,
@@ -599,7 +599,7 @@ function Home() {
 
     setCanScrollComingUpRight(el.scrollLeft < maxScrollLeft - 1);
 
-    // Custom CineVault scroll indicator
+    // Custom Cinetome scroll indicator
     const progress =
       maxScrollLeft > 0 ? (el.scrollLeft / maxScrollLeft) * 100 : 0;
 
@@ -957,7 +957,6 @@ function Home() {
                 autoScroll
                 loading={loading}
               />
-
             </div>
             {/* ==================================================
     POPULAR MOVIES
@@ -970,7 +969,6 @@ function Home() {
                 type="Movie"
                 loading={loading}
               />
-
             </div>
             {/* ==================================================
                 POPULAR SERIES
@@ -1049,7 +1047,7 @@ function Home() {
                   </span>
 
                   <span className="text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
-                    Your CineVault
+                    Your Cinetome
                   </span>
                 </div>
 
@@ -1238,7 +1236,7 @@ function Home() {
                 </div>
 
                 {/* ======================================================
-      CINEVAULT SCROLL INDICATOR
+      Cinetome SCROLL INDICATOR
       ======================================================= */}
 
                 <div className="mt-1 flex justify-center px-1">

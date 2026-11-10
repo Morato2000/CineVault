@@ -8,18 +8,14 @@ import artMobile from "../assets/images/404-art-mobile.png";
 function NotFound() {
   return (
     <div className="min-h-screen bg-[#080D17]">
-        {/* CineVault Logo */}
- <Link
-  to="/"
-  className="absolute left-6 top-6 z-20 sm:left-8 sm:top-8 lg:left-10 lg:top-8"
-  aria-label="CineVault Home"
->
-  <img
-    src={brandLogo}
-    alt="CineVault"
-    className="h-10 w-auto sm:h-12"
-  />
-</Link>
+      {/* Cinetome Logo */}
+      <Link
+        to="/"
+        className="absolute left-6 top-6 z-20 sm:left-8 sm:top-8 lg:left-10 lg:top-8"
+        aria-label="Cinetome Home"
+      >
+        <img src={brandLogo} alt="Cinetome" className="h-10 w-auto sm:h-12" />
+      </Link>
       <main className="relative min-h-screen overflow-hidden">
         {/* Background artwork */}
         <picture className="absolute inset-0 block h-full w-full">
@@ -120,8 +116,7 @@ function NotFound() {
                 lg:text-4xl
               "
             >
-              This scene was{" "}
-              <span className="text-purple-400">deleted.</span>
+              This scene was <span className="text-purple-400">deleted.</span>
             </h1>
 
             <p

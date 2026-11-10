@@ -127,7 +127,7 @@ function Login() {
         {/* Top: logo, 32px from the top */}
         <div className="flex justify-center pt-8">
           <Link to="/">
-            <img src={brandLogo} alt="CineVault" className="w-40 sm:w-48" />
+            <img src={brandLogo} alt="Cinetome" className="w-40 sm:w-48" />
           </Link>
         </div>
 
@@ -317,7 +317,7 @@ function Login() {
           </Link>
 
           <p className="text-xs text-gray-500">
-            © 2026 CineVault. All rights reserved.
+            © 2026 Cinetome. All rights reserved.
           </p>
         </div>
       </div>

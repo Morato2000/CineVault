@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiMail } from "react-icons/fi";
@@ -20,12 +19,9 @@ function ForgotPassword() {
     setErrorMessage("");
     setSubmitting(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${window.location.origin}/reset-password`,
-      }
-    );
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
 
     if (error) {
       setErrorMessage(error.message);
@@ -53,11 +49,7 @@ function ForgotPassword() {
       <div className="flex flex-1 flex-col bg-[#010415] px-4 sm:px-6">
         <div className="flex justify-center pt-8">
           <Link to="/">
-            <img
-              src={brandLogo}
-              alt="CineVault"
-              className="w-40 sm:w-48"
-            />
+            <img src={brandLogo} alt="Cinetome" className="w-40 sm:w-48" />
           </Link>
         </div>
 
@@ -86,10 +78,7 @@ function ForgotPassword() {
                   </div>
                 )}
 
-                <form
-                  className="mt-5 space-y-3"
-                  onSubmit={handleSubmit}
-                >
+                <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
                   <div>
                     <label className="mb-1.5 block text-sm text-white">
                       Email
@@ -114,17 +103,12 @@ function ForgotPassword() {
                     disabled={submitting}
                     className="w-full rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {submitting
-                      ? "Sending..."
-                      : "Send Reset Link"}
+                    {submitting ? "Sending..." : "Send Reset Link"}
                   </button>
                 </form>
 
                 <p className="mt-5 text-center text-sm text-gray-400">
-                  <Link
-                    to="/login"
-                    className="font-medium text-purple-400"
-                  >
+                  <Link to="/login" className="font-medium text-purple-400">
                     ← Back to Sign In
                   </Link>
                 </p>
@@ -142,7 +126,7 @@ function ForgotPassword() {
           </Link>
 
           <p className="text-xs text-gray-500">
-            © 2026 CineVault. All rights reserved.
+            © 2026 Cinetome. All rights reserved.
           </p>
         </div>
       </div>

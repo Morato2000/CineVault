@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   IoHelpCircleOutline,
@@ -38,7 +37,7 @@ const FAQS = [
     icon: IoLockClosedOutline,
     question: "Is my data private?",
     answer:
-      "CineVault uses Supabase for account authentication and supported data storage. Your account information and saved activity are handled according to our Privacy Policy.",
+      "Cinetome uses Supabase for account authentication and supported data storage. Your account information and saved activity are handled according to our Privacy Policy.",
   },
 ];
 
@@ -123,7 +122,6 @@ function Help() {
   return (
     <div className="min-h-screen w-full px-5 pb-20 pt-8 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-7xl">
-
         {/* Hero */}
         <section className="relative mb-10 overflow-hidden rounded-3xl border border-indigo-400/15 bg-gradient-to-br from-[#121a30] via-[#151525] to-[#171329] px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
           <div className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-blue-500/10 blur-[100px]" />
@@ -143,7 +141,7 @@ function Help() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">
-              Find answers, get support, and make the most of your CineVault
+              Find answers, get support, and make the most of your Cinetome
               experience. We're here to help you enjoy every discovery.
             </p>
 
@@ -170,15 +168,15 @@ function Help() {
             </h2>
 
             <p className="mt-3 text-sm leading-7 text-gray-400">
-              Quick answers to common questions about your account,
-              watchlist, ratings and CineVault features.
+              Quick answers to common questions about your account, watchlist,
+              ratings and Cinetome features.
             </p>
 
             <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
               <IoShieldCheckmarkOutline className="h-6 w-6 shrink-0 text-indigo-400" />
               <p className="text-xs leading-5 text-gray-400">
-                Can't find what you're looking for? Our support page is just
-                a click away.
+                Can't find what you're looking for? Our support page is just a
+                click away.
               </p>
             </div>
           </div>
@@ -227,7 +225,7 @@ function Help() {
             <ContactCard
               icon={IoBulbOutline}
               title="Suggest a Feature"
-              description="Have an idea that could improve CineVault? We'd love to hear it."
+              description="Have an idea that could improve Cinetome? We'd love to hear it."
               action="Share your idea"
               to="/message-us?subject=Feature%20Request"
             />
@@ -236,9 +234,7 @@ function Help() {
 
         {/* Footer link */}
         <div className="mt-12 flex flex-col items-center justify-center gap-2 border-t border-white/[0.07] pt-8 text-center">
-          <p className="text-sm text-gray-400">
-            Your privacy matters to us.
-          </p>
+          <p className="text-sm text-gray-400">Your privacy matters to us.</p>
           <Link
             to="/privacy-policy"
             className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 transition hover:text-purple-300"

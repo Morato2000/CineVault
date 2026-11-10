@@ -25,7 +25,7 @@ function MobileDrawer({ open, onClose }) {
             <IoClose className="h-5 w-5" />
           </button>
 
-          <img src={brandLogo} alt="CineVault" className="h-8 w-auto" />
+          <img src={brandLogo} alt="Cinetome" className="h-8 w-auto" />
 
           <div className="w-9" />
         </div>

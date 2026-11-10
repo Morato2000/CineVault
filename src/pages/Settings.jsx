@@ -630,7 +630,7 @@ function Settings() {
     const a = document.createElement("a");
 
     a.href = url;
-    a.download = "cinevault-watchlist.json";
+    a.download = "Cinetome-watchlist.json";
     a.click();
 
     URL.revokeObjectURL(url);
@@ -895,7 +895,7 @@ function Settings() {
             iconSrc={setIconPreferences}
             iconBg="#101234"
             title="Preferences"
-            description="Customize your CineVault experience"
+            description="Customize your Cinetome experience"
           />
 
           <div className="mt-3 divide-y divide-white/5">
@@ -1077,7 +1077,7 @@ function Settings() {
           <SectionHeader
             iconSrc={setIconAbout}
             iconBg="#1C121A"
-            title="About CineVault"
+            title="About Cinetome"
             description="App information and policy"
           />
 
@@ -1119,7 +1119,7 @@ function Settings() {
                 Delete Account
               </p>
               <p className="text-xs text-gray-400">
-                This will permanently delete your CineVault account and its
+                This will permanently delete your Cinetome account and its
                 associated account data. You’ll be signed out, and this action
                 cannot be undone.
               </p>

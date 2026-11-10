@@ -65,7 +65,7 @@ export default function MessageUs() {
         <div className="mt-10 mb-12">
           <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
             <IoMailOutline size={17} />
-            CineVault Support
+            Cinetome Support
           </span>
 
           <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
@@ -74,7 +74,7 @@ export default function MessageUs() {
 
           <p className="mt-4 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-400">
             Have a question, found a problem, or have an idea that could make
-            CineVault better? We'd love to hear from you.
+            Cinetome better? We'd love to hear from you.
           </p>
         </div>
 
@@ -123,7 +123,7 @@ export default function MessageUs() {
                     </h3>
                     <p className="mt-1 text-sm leading-6 text-gray-400">
                       Your message is sent through your email application.
-                      CineVault does not directly store this contact form
+                      Cinetome does not directly store this contact form
                       submission.
                     </p>
                   </div>
@@ -133,7 +133,7 @@ export default function MessageUs() {
 
             <div className="relative z-10 mt-12 border-t border-white/10 pt-6">
               <p className="text-sm text-gray-500">
-                Thanks for being part of CineVault.
+                Thanks for being part of Cinetome.
               </p>
             </div>
           </div>

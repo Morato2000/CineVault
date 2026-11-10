@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -12,41 +11,40 @@ import WrappedStory from "../components/wrapped/WrappedStory";
 import { useWrappedData } from "../hooks/useWrappedData";
 
 function MonthlyWrapped() {
- 
-const navigate = useNavigate();
-const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const isPreview =
-  new URLSearchParams(location.search).get("preview") === "true";
+  const isPreview =
+    new URLSearchParams(location.search).get("preview") === "true";
 
-const previousMonth = useMemo(() => {
-  const date = new Date();
-  date.setDate(1);
-  date.setMonth(date.getMonth() - 1);
-  return date;
-}, []);
+  const previousMonth = useMemo(() => {
+    const date = new Date();
+    date.setDate(1);
+    date.setMonth(date.getMonth() - 1);
+    return date;
+  }, []);
 
-const realData = useWrappedData("monthly", previousMonth);
+  const realData = useWrappedData("monthly", previousMonth);
 
-const data = isPreview
-  ? {
-      ...realData,
-      isEmpty: false,
-      label: "September 2026",
-      totalTitles: 24,
-      movieCount: 17,
-      tvCount: 7,
-      topGenre: "Science Fiction",
-      topGenreColor: "#A855F7",
-      vibe: "The Cosmic Explorer",
-      totalMinutesFormatted: "72h 45m",
-      highestRatedOfPeriod: {
-        title: "Interstellar",
-        name: "Interstellar",
-        rating: 10,
-      },
-    }
-  : realData;
+  const data = isPreview
+    ? {
+        ...realData,
+        isEmpty: false,
+        label: "September 2026",
+        totalTitles: 24,
+        movieCount: 17,
+        tvCount: 7,
+        topGenre: "Science Fiction",
+        topGenreColor: "#A855F7",
+        vibe: "The Cosmic Explorer",
+        totalMinutesFormatted: "72h 45m",
+        highestRatedOfPeriod: {
+          title: "Interstellar",
+          name: "Interstellar",
+          rating: 10,
+        },
+      }
+    : realData;
 
   if (data.isEmpty) {
     return (
@@ -58,7 +56,7 @@ const data = isPreview
         </div>
 
         <p className="relative mt-6 text-xs font-bold uppercase tracking-[0.3em] text-purple-300">
-          CineVault Wrapped
+          Cinetome Wrapped
         </p>
 
         <h1 className="relative mt-3 text-3xl font-black tracking-tight">
@@ -88,10 +86,7 @@ const data = isPreview
 
   const slides = [
     // 1. Opening
-    <div
-      key="1"
-      className={`${base} bg-[#080D17]`}
-    >
+    <div key="1" className={`${base} bg-[#080D17]`}>
       <div className={`${glow} -right-32 -top-20 bg-purple-600/40`} />
       <div className={`${glow} -bottom-32 -left-32 bg-blue-600/30`} />
 
@@ -118,15 +113,12 @@ const data = isPreview
 
       <div className="mt-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
         <IoSparkles className="text-purple-400" />
-        CineVault Wrapped
+        Cinetome Wrapped
       </div>
     </div>,
 
     // 2. Titles added
-    <div
-      key="2"
-      className={`${base} bg-[#211044]`}
-    >
+    <div key="2" className={`${base} bg-[#211044]`}>
       <div className={`${glow} -right-28 -top-24 bg-fuchsia-500/50`} />
       <div className={`${glow} -bottom-32 -left-20 bg-blue-500/40`} />
 
@@ -195,10 +187,7 @@ const data = isPreview
     ),
 
     // 4. Watch time
-    <div
-      key="4"
-      className={`${base} bg-[#071B2A]`}
-    >
+    <div key="4" className={`${base} bg-[#071B2A]`}>
       <div className={`${glow} -bottom-24 -right-24 bg-cyan-500/30`} />
       <div className={`${glow} -left-28 -top-24 bg-blue-600/30`} />
 
@@ -225,10 +214,7 @@ const data = isPreview
 
     // 5. Highest-rated pick
     data.highestRatedOfPeriod && (
-      <div
-        key="5"
-        className={`${base} bg-[#260E1C]`}
-      >
+      <div key="5" className={`${base} bg-[#260E1C]`}>
         <div className={`${glow} -right-24 -top-24 bg-pink-500/30`} />
         <div className={`${glow} -bottom-28 -left-24 bg-purple-600/30`} />
 
@@ -241,8 +227,7 @@ const data = isPreview
         </div>
 
         <h2 className="max-w-lg break-words text-3xl font-black leading-tight sm:text-5xl">
-          {data.highestRatedOfPeriod.title ||
-            data.highestRatedOfPeriod.name}
+          {data.highestRatedOfPeriod.title || data.highestRatedOfPeriod.name}
         </h2>
 
         <div className="flex items-center gap-2 rounded-full border border-pink-200/15 bg-black/20 px-5 py-3">
@@ -260,10 +245,7 @@ const data = isPreview
     ),
 
     // 6. Closing
-    <div
-      key="6"
-      className={`${base} bg-[#080D17]`}
-    >
+    <div key="6" className={`${base} bg-[#080D17]`}>
       <div className={`${glow} -right-28 -top-24 bg-blue-600/40`} />
       <div className={`${glow} -bottom-28 -left-28 bg-purple-600/40`} />
 

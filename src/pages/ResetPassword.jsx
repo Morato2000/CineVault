@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { HiOutlineLockClosed } from "react-icons/hi";
@@ -33,9 +32,7 @@ function ResetPassword() {
       if (!mounted) return;
 
       if (!session) {
-        setErrorMessage(
-          "This password reset link is invalid or has expired."
-        );
+        setErrorMessage("This password reset link is invalid or has expired.");
       }
 
       setCheckingSession(false);
@@ -102,11 +99,7 @@ function ResetPassword() {
       <div className="flex flex-1 flex-col bg-[#010415] px-4 sm:px-6">
         <div className="flex justify-center pt-8">
           <Link to="/">
-            <img
-              src={brandLogo}
-              alt="CineVault"
-              className="w-40 sm:w-48"
-            />
+            <img src={brandLogo} alt="Cinetome" className="w-40 sm:w-48" />
           </Link>
         </div>
 
@@ -130,7 +123,7 @@ function ResetPassword() {
                 </h1>
 
                 <p className="mt-2 text-center text-sm text-gray-400">
-                  Enter a new password for your CineVault account.
+                  Enter a new password for your Cinetome account.
                 </p>
 
                 {checkingSession ? (
@@ -165,9 +158,7 @@ function ResetPassword() {
                           id="password"
                           type={showPassword ? "text" : "password"}
                           value={password}
-                          onChange={(event) =>
-                            setPassword(event.target.value)
-                          }
+                          onChange={(event) => setPassword(event.target.value)}
                           placeholder="Enter new password"
                           autoComplete="new-password"
                           className="w-full rounded-lg border border-[#3D5B9E] bg-[#10172A] px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-gray-500 focus:border-purple-500"
@@ -175,14 +166,10 @@ function ResetPassword() {
 
                         <button
                           type="button"
-                          onClick={() =>
-                            setShowPassword((prev) => !prev)
-                          }
+                          onClick={() => setShowPassword((prev) => !prev)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
                           aria-label={
-                            showPassword
-                              ? "Hide password"
-                              : "Show password"
+                            showPassword ? "Hide password" : "Show password"
                           }
                         >
                           {showPassword ? "Hide" : "Show"}
@@ -201,11 +188,7 @@ function ResetPassword() {
                       <div className="relative">
                         <input
                           id="confirmPassword"
-                          type={
-                            showConfirmPassword
-                              ? "text"
-                              : "password"
-                          }
+                          type={showConfirmPassword ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(event) =>
                             setConfirmPassword(event.target.value)
@@ -249,18 +232,13 @@ function ResetPassword() {
                       disabled={submitting}
                       className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-[#A855F7] to-[#3B82F6] py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {submitting
-                        ? "Updating..."
-                        : "Update Password"}
+                      {submitting ? "Updating..." : "Update Password"}
                     </button>
                   </form>
                 )}
 
                 <p className="mt-5 text-center text-sm text-gray-400">
-                  <Link
-                    to="/login"
-                    className="font-medium text-purple-400"
-                  >
+                  <Link to="/login" className="font-medium text-purple-400">
                     ← Back to Sign In
                   </Link>
                 </p>
@@ -278,7 +256,7 @@ function ResetPassword() {
           </Link>
 
           <p className="text-xs text-gray-500">
-            © 2026 CineVault. All rights reserved.
+            © 2026 Cinetome. All rights reserved.
           </p>
         </div>
       </div>

@@ -34,7 +34,7 @@ function Footer() {
       <div className="grid grid-cols-1 gap-10 px-10 py-12 md:grid-cols-4 md:divide-x md:divide-indigo-500/30">
         {/* Brand */}
         <div className="md:pr-8">
-          <img src={brandLogo} alt="CineVault" className="h-auto w-40" />
+          <img src={brandLogo} alt="Cinetome" className="h-auto w-40" />
           <p className="mt-3 text-sm text-gray-400">
             Your personal vault for all the movies, series and anime you want to
             watch.
@@ -108,7 +108,7 @@ function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-10 py-5 text-center text-xs text-gray-500">
-        © 2026 CineVault. All rights reserved. A product of Odderatic Studio.
+        © 2026 Cinetome. All rights reserved. A product of Odderatic Studio.
       </div>
     </footer>
   );

@@ -278,7 +278,7 @@ function Stats() {
             <IoSparkles className="h-5 w-5 text-white" />
           </span>
           <div>
-            <p className="font-bold text-white">Your CineVault Wrapped</p>
+            <p className="font-bold text-white">Your Cinetome Wrapped</p>
             <p className="text-xs text-gray-400">
               See your monthly and yearly recap
             </p>
@@ -317,7 +317,7 @@ function Stats() {
           </div>
 
           {/* Bento Skeleton */}
-         <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <div className="h-64 animate-pulse rounded-2xl bg-[#111827]" />
             <div className="h-64 animate-pulse rounded-2xl bg-[#111827]" />
             <div className="h-64 animate-pulse rounded-2xl bg-[#111827]" />
@@ -327,7 +327,7 @@ function Stats() {
       ) : (
         <>
           {/* Stat Cards */}
-         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-4">
             <StatCard
               iconSrc={statMovie}
               label="Movies"

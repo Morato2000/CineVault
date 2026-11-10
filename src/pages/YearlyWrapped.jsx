@@ -69,7 +69,7 @@ function YearlyWrapped() {
         </div>
 
         <p className="relative mt-6 text-xs font-bold uppercase tracking-[0.3em] text-purple-300">
-          CineVault Wrapped
+          Cinetome Wrapped
         </p>
 
         <h1 className="relative mt-3 text-3xl font-black tracking-tight">
@@ -126,7 +126,7 @@ function YearlyWrapped() {
 
       <div className="mt-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
         <IoSparkles className="text-purple-400" />
-        CineVault Wrapped
+        Cinetome Wrapped
       </div>
     </div>,
 

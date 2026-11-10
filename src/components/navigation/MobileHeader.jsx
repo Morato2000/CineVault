@@ -140,7 +140,7 @@ function MobileHeader({ onMenuClick }) {
         </button>
 
         <Link to="/">
-          <img src={brandLogo} alt="CineVault" className="h-8 w-auto" />
+          <img src={brandLogo} alt="Cinetome" className="h-8 w-auto" />
         </Link>
 
         {isLoggedIn ? (
@@ -390,51 +390,52 @@ function MobileHeader({ onMenuClick }) {
               </p>
             )}
 
-           {!searching && results.map((item) => {
-              const title = item.title || item.name;
-              const date = item.release_date || item.first_air_date;
-              const year = date ? date.slice(0, 4) : "";
-              const poster = getTmdbImage(item.poster_path, "w92");
+            {!searching &&
+              results.map((item) => {
+                const title = item.title || item.name;
+                const date = item.release_date || item.first_air_date;
+                const year = date ? date.slice(0, 4) : "";
+                const poster = getTmdbImage(item.poster_path, "w92");
 
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    navigate(`/${item.media_type}/${item.id}`);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
-                >
-                  {poster ? (
-                    <img
-                      src={poster}
-                      alt=""
-                      className="h-14 w-10 rounded-md object-cover"
-                    />
-                  ) : (
-                    <div className="h-14 w-10 shrink-0 rounded-md bg-white/10" />
-                  )}
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate(`/${item.media_type}/${item.id}`);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-white/5"
+                  >
+                    {poster ? (
+                      <img
+                        src={poster}
+                        alt=""
+                        className="h-14 w-10 rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="h-14 w-10 shrink-0 rounded-md bg-white/10" />
+                    )}
 
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-white">
-                      {title}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {title}
+                      </p>
 
-                    <p className="text-xs text-gray-400">
-                      {year} •{" "}
-                      {item.media_type === "tv" ? "TV Series" : "Movies"}
-                    </p>
-                  </div>
+                      <p className="text-xs text-gray-400">
+                        {year} •{" "}
+                        {item.media_type === "tv" ? "TV Series" : "Movies"}
+                      </p>
+                    </div>
 
-                  <span className="flex items-center gap-1 text-xs text-amber-400">
-                    ★ {item.vote_average?.toFixed(1)}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="flex items-center gap-1 text-xs text-amber-400">
+                      ★ {item.vote_average?.toFixed(1)}
+                    </span>
+                  </button>
+                );
+              })}
 
-           {!searching && results.length > 0 && (
+            {!searching && results.length > 0 && (
               <button
                 type="button"
                 onClick={goToFullResults}

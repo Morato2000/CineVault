@@ -102,7 +102,7 @@ function Register() {
         {/* Top: logo */}
         <div className="flex justify-center pt-8">
           <Link to="/">
-            <img src={brandLogo} alt="CineVault" className="w-36 sm:w-40" />
+            <img src={brandLogo} alt="Cinetome" className="w-36 sm:w-40" />
           </Link>
         </div>
 
@@ -320,7 +320,7 @@ function Register() {
           </Link>
 
           <p className="text-xs text-gray-500">
-            © 2026 CineVault. All rights reserved.
+            © 2026 Cinetome. All rights reserved.
           </p>
         </div>
       </div>

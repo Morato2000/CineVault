@@ -43,13 +43,13 @@ function Sidebar({ collapsed, onToggle }) {
           <div className="h-10 w-[46px] overflow-hidden">
             <img
               src={brandLogo}
-              alt="CineVault"
+              alt="Cinetome"
               className="h-10 w-auto max-w-none"
             />
           </div>
         ) : (
           <>
-            <img src={brandLogo} alt="CineVault" className="h-auto w-44" />
+            <img src={brandLogo} alt="Cinetome" className="h-auto w-44" />
 
             <p className="mt-1 text-xs tracking-widest text-gray-400">
               MOVIES • ANIME • MEMORIES

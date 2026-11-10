@@ -50,7 +50,7 @@ function buildEmail(notifications: DigestNotification[]): string {
         <p>${message}</p>
         ${
           link
-            ? `<p><a href="${escapeHtml(link)}">View in CineVault</a></p>`
+            ? `<p><a href="${escapeHtml(link)}">View in Cinetome</a></p>`
             : ""
         }
         <small>${escapeHtml(
@@ -68,11 +68,11 @@ function buildEmail(notifications: DigestNotification[]): string {
 
   return `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#172033;">
-      <h1>CineVault Daily Digest</h1>
-      <p>Here are your latest updates from CineVault.</p>
+      <h1>Cinetome Daily Digest</h1>
+      <p>Here are your latest updates from Cinetome.</p>
       <ul style="padding-left:20px;">${items}</ul>
       <p>You are receiving this email because email notifications are enabled
-      in your CineVault preferences.</p>
+      in your Cinetome preferences.</p>
     </div>
   `;
 }
@@ -171,9 +171,9 @@ export default {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "CineVault <onboarding@resend.dev>",
+            from: "Cinetome <onboarding@resend.dev>",
             to: [testRecipient],
-            subject: `Your CineVault Daily Digest (${items.length} updates)`,
+            subject: `Your Cinetome Daily Digest (${items.length} updates)`,
             html: buildEmail(items),
           }),
         });

@@ -43,7 +43,7 @@ function MovieSection({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // Position of the custom CineVault scroll indicator.
+  // Position of the custom Cinetome scroll indicator.
   const [scrollProgress, setScrollProgress] = useState(0);
 
   // Controls whether automatic scrolling is enabled.
@@ -371,7 +371,7 @@ function MovieSection({
           </div>
 
           {/* --------------------------------------------------
-                CINEVAULT CUSTOM SCROLL INDICATOR
+                Cinetome CUSTOM SCROLL INDICATOR
             --------------------------------------------------- */}
 
           <div className="mt-1 flex justify-center px-1">

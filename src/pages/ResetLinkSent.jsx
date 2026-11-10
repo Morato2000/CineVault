@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { HiOutlineMailOpen } from "react-icons/hi";
@@ -32,12 +31,9 @@ function ResetLinkSent() {
     setMessage("");
     setResending(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${window.location.origin}/reset-password`,
-      }
-    );
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
 
     setResending(false);
 
@@ -63,11 +59,7 @@ function ResetLinkSent() {
       <div className="flex flex-1 flex-col bg-[#010415] px-4 sm:px-6">
         <div className="flex justify-center pt-8">
           <Link to="/">
-            <img
-              src={brandLogo}
-              alt="CineVault"
-              className="w-40 sm:w-48"
-            />
+            <img src={brandLogo} alt="Cinetome" className="w-40 sm:w-48" />
           </Link>
         </div>
 
@@ -96,24 +88,17 @@ function ResetLinkSent() {
 
                 <p className="mt-2 text-sm text-gray-400">
                   We've sent a password reset link to{" "}
-                  <span className="text-purple-400">
-                    {email}
-                  </span>
+                  <span className="text-purple-400">{email}</span>
                 </p>
 
                 <p className="mt-4 text-sm text-gray-400">
-                  Didn't receive it? Check your spam folder or
-                  resend in{" "}
-                  <span className="text-purple-400">
-                    {secondsLeft}
-                  </span>{" "}
+                  Didn't receive it? Check your spam folder or resend in{" "}
+                  <span className="text-purple-400">{secondsLeft}</span>{" "}
                   seconds.
                 </p>
 
                 {message && (
-                  <p className="mt-3 text-sm text-purple-400">
-                    {message}
-                  </p>
+                  <p className="mt-3 text-sm text-purple-400">{message}</p>
                 )}
 
                 <button
@@ -127,10 +112,7 @@ function ResetLinkSent() {
                 </button>
 
                 <p className="mt-5 text-sm text-gray-400">
-                  <Link
-                    to="/login"
-                    className="font-medium text-purple-400"
-                  >
+                  <Link to="/login" className="font-medium text-purple-400">
                     ← Back to Sign In
                   </Link>
                 </p>
@@ -148,7 +130,7 @@ function ResetLinkSent() {
           </Link>
 
           <p className="text-xs text-gray-500">
-            © 2026 CineVault. All rights reserved.
+            © 2026 Cinetome. All rights reserved.
           </p>
         </div>
       </div>

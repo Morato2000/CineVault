@@ -1,4 +1,3 @@
-
 import BackButton from "../components/common/BackButton";
 
 function PrivacyPolicy() {
@@ -6,9 +5,7 @@ function PrivacyPolicy() {
     <div className="px-8 pb-16">
       <BackButton />
 
-      <h1 className="mt-4 text-2xl font-bold text-white">
-        Privacy Policy
-      </h1>
+      <h1 className="mt-4 text-2xl font-bold text-white">Privacy Policy</h1>
 
       <p className="mt-1 text-gray-400">Last updated October 2026</p>
 
@@ -18,14 +15,13 @@ function PrivacyPolicy() {
             1. Introduction
           </h2>
           <p>
-            Welcome to CineVault. Your privacy matters to us. This Privacy
-            Policy explains what information CineVault collects, how it is
-            used, where it is stored, and the choices you have when using
-            the application.
+            Welcome to Cinetome. Your privacy matters to us. This Privacy Policy
+            explains what information Cinetome collects, how it is used, where
+            it is stored, and the choices you have when using the application.
           </p>
           <p>
-            By using CineVault, you acknowledge the practices described in
-            this policy.
+            By using Cinetome, you acknowledge the practices described in this
+            policy.
           </p>
         </section>
 
@@ -34,19 +30,19 @@ function PrivacyPolicy() {
             2. Information We Collect
           </h2>
           <p>
-            Depending on how you use CineVault, the following information
-            may be collected or stored:
+            Depending on how you use Cinetome, the following information may be
+            collected or stored:
           </p>
 
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong className="text-white">Account information:</strong>{" "}
-              Information used to create and manage your account, such as
-              your email address and authentication details.
+              Information used to create and manage your account, such as your
+              email address and authentication details.
             </li>
             <li>
               <strong className="text-white">Profile information:</strong>{" "}
-              Information associated with your CineVault profile.
+              Information associated with your Cinetome profile.
             </li>
             <li>
               <strong className="text-white">Watchlist and favorites:</strong>{" "}
@@ -68,7 +64,7 @@ function PrivacyPolicy() {
           <h2 className="text-base font-semibold text-white">
             3. How We Use Your Information
           </h2>
-          <p>Information collected by CineVault is used to:</p>
+          <p>Information collected by Cinetome is used to:</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>Create and manage user accounts.</li>
             <li>Authenticate users and maintain secure sessions.</li>
@@ -77,9 +73,7 @@ function PrivacyPolicy() {
             <li>Provide notification features.</li>
             <li>Maintain, troubleshoot, and improve the application.</li>
           </ul>
-          <p>
-            CineVault does not sell your personal information.
-          </p>
+          <p>Cinetome does not sell your personal information.</p>
         </section>
 
         <section className="space-y-2">
@@ -87,7 +81,7 @@ function PrivacyPolicy() {
             4. Where Your Information Is Stored
           </h2>
           <p>
-            CineVault uses{" "}
+            Cinetome uses{" "}
             <a
               href="https://supabase.com"
               target="_blank"
@@ -97,11 +91,11 @@ function PrivacyPolicy() {
               Supabase
             </a>{" "}
             for authentication and database services. Account information,
-            profiles, watchlists, ratings, preferences, and notification
-            records may be stored securely through these services.
+            profiles, watchlists, ratings, preferences, and notification records
+            may be stored securely through these services.
           </p>
           <p>
-            CineVault is hosted using{" "}
+            Cinetome is hosted using{" "}
             <a
               href="https://vercel.com"
               target="_blank"
@@ -120,24 +114,23 @@ function PrivacyPolicy() {
             5. Third-Party Services
           </h2>
           <p>
-            CineVault relies on third-party services to provide certain
-            features:
+            Cinetome relies on third-party services to provide certain features:
           </p>
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong className="text-white">The Movie Database (TMDB):</strong>{" "}
               Movie and TV information, including titles, posters, ratings,
-              cast, and other metadata, is retrieved through the TMDB API.
-              This product uses the TMDB API but is not endorsed or certified
-              by TMDB.
+              cast, and other metadata, is retrieved through the TMDB API. This
+              product uses the TMDB API but is not endorsed or certified by
+              TMDB.
             </li>
             <li>
-              <strong className="text-white">Supabase:</strong>{" "}
-              Provides account authentication and database services.
+              <strong className="text-white">Supabase:</strong> Provides account
+              authentication and database services.
             </li>
             <li>
-              <strong className="text-white">Vercel:</strong>{" "}
-              Provides application hosting and delivery infrastructure.
+              <strong className="text-white">Vercel:</strong> Provides
+              application hosting and delivery infrastructure.
             </li>
           </ul>
           <p>
@@ -179,14 +172,14 @@ function PrivacyPolicy() {
             6. Data Security
           </h2>
           <p>
-            We take reasonable steps to protect information stored and
-            processed by CineVault. However, no method of online transmission
-            or electronic storage is completely secure, and absolute security
-            cannot be guaranteed.
+            We take reasonable steps to protect information stored and processed
+            by Cinetome. However, no method of online transmission or electronic
+            storage is completely secure, and absolute security cannot be
+            guaranteed.
           </p>
           <p>
-            Users should keep their account credentials confidential and
-            avoid sharing access to their accounts.
+            Users should keep their account credentials confidential and avoid
+            sharing access to their accounts.
           </p>
         </section>
 
@@ -195,16 +188,16 @@ function PrivacyPolicy() {
             7. Data Retention and Account Deletion
           </h2>
           <p>
-            Your account information and associated data are retained while
-            your account remains active, unless a longer retention period is
-            required for legitimate purposes or applicable legal obligations.
+            Your account information and associated data are retained while your
+            account remains active, unless a longer retention period is required
+            for legitimate purposes or applicable legal obligations.
           </p>
           <p>
-            You can request deletion of your account through the Delete
-            Account option in Settings, where available. Account deletion
-            removes your account and associated CineVault records, subject
-            to any information that must be retained by law or by service
-            providers under their own retention policies.
+            You can request deletion of your account through the Delete Account
+            option in Settings, where available. Account deletion removes your
+            account and associated Cinetome records, subject to any information
+            that must be retained by law or by service providers under their own
+            retention policies.
           </p>
         </section>
 
@@ -213,9 +206,9 @@ function PrivacyPolicy() {
             8. Your Privacy Choices
           </h2>
           <p>
-            You may access and update information through your account
-            settings where those features are available. You may also request
-            account deletion using the available account deletion feature.
+            You may access and update information through your account settings
+            where those features are available. You may also request account
+            deletion using the available account deletion feature.
           </p>
           <p>
             Depending on your location, you may have additional rights to
@@ -229,11 +222,10 @@ function PrivacyPolicy() {
             9. Children's Privacy
           </h2>
           <p>
-            CineVault is not knowingly designed to collect personal
-            information from children without appropriate authorization.
-            If you believe a child has provided personal information without
-            the required consent, please contact us so the matter can be
-            reviewed.
+            Cinetome is not knowingly designed to collect personal information
+            from children without appropriate authorization. If you believe a
+            child has provided personal information without the required
+            consent, please contact us so the matter can be reviewed.
           </p>
         </section>
 
@@ -242,26 +234,23 @@ function PrivacyPolicy() {
             10. Changes to This Policy
           </h2>
           <p>
-            This Privacy Policy may be updated as CineVault develops or its
-            data practices change. Any changes will be reflected on this page
-            with an updated revision date.
+            This Privacy Policy may be updated as Cinetome develops or its data
+            practices change. Any changes will be reflected on this page with an
+            updated revision date.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-white">
-            11. Contact
-          </h2>
+          <h2 className="text-base font-semibold text-white">11. Contact</h2>
           <p>
-            If you have questions, concerns, or requests regarding this
-            Privacy Policy or your personal information, please contact the
-            CineVault project owner through the available project contact
-            channel.
+            If you have questions, concerns, or requests regarding this Privacy
+            Policy or your personal information, please contact the Cinetome
+            project owner through the available project contact channel.
           </p>
         </section>
 
         <p className="border-t border-white/10 pt-4 text-xs text-gray-500">
-          CineVault is an independent movie and TV discovery project.
+          Cinetome is an independent movie and TV discovery project.
         </p>
       </div>
     </div>

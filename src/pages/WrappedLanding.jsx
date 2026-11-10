@@ -12,7 +12,7 @@ function WrappedLanding() {
       <BackButton />
 
       <h1 className="mt-4 text-2xl font-bold text-white">
-        Your CineVault Wrapped
+        Your Cinetome Wrapped
       </h1>
       <p className="mt-1 text-gray-400">
         A personal recap of your watch habits.

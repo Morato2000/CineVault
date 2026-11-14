@@ -71,7 +71,7 @@ function StatCard({ iconSrc, label, value, sub, valueSuffix = "" }) {
 function InsightCard({ icon: Icon, iconSrc, label, value, sub }) {
   return (
     <div className="rounded-2xl bg-linear-to-b from-[#A855F7] to-[#3B82F6] p-px">
-      <div className="flex min-w-0 items-center gap-3 rounded-[15px] bg-[#080F1A] p-4">
+      <div className="flex h-full min-w-0 items-center gap-3 rounded-[15px] bg-[#080F1A] p-4">
         <span
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
           style={{ backgroundColor: INSIGHT_BADGE_BG }}

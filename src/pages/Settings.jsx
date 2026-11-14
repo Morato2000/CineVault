@@ -905,27 +905,57 @@ function Settings() {
               label="Theme"
               description="Only Dark is available right now"
             >
-              <IconSegmentedControl
-                options={[
-                  { label: "System", icon: IoDesktopOutline },
-                  { label: "Light", icon: IoSunnyOutline },
-                  { label: "Dark", icon: IoMoonOutline },
-                ]}
-                value={
-                  preferences.theme === "dark"
-                    ? "Dark"
-                    : preferences.theme === "light"
-                      ? "Light"
-                      : "System"
-                }
-                onChange={(v) => {
-                  if (v !== "Dark") {
-                    showToast(`${v} theme isn't available yet — coming soon.`);
-                    return;
-                  }
-                  updatePreference("theme", "dark");
-                }}
-              />
+              <div className="w-full sm:w-auto">
+                {/* Mobile dropdown */}
+                <div className="sm:hidden">
+                  <Dropdown
+                    options={["System", "Light", "Dark"]}
+                    value={
+                      preferences.theme === "dark"
+                        ? "Dark"
+                        : preferences.theme === "light"
+                          ? "Light"
+                          : "System"
+                    }
+                    onChange={(v) => {
+                      if (v !== "Dark") {
+                        showToast(
+                          `${v} theme isn't available yet — coming soon.`,
+                        );
+                        return;
+                      }
+                      updatePreference("theme", "dark");
+                    }}
+                  />
+                </div>
+
+                {/* Desktop segmented control */}
+                <div className="hidden sm:block">
+                  <IconSegmentedControl
+                    options={[
+                      { label: "System", icon: IoDesktopOutline },
+                      { label: "Light", icon: IoSunnyOutline },
+                      { label: "Dark", icon: IoMoonOutline },
+                    ]}
+                    value={
+                      preferences.theme === "dark"
+                        ? "Dark"
+                        : preferences.theme === "light"
+                          ? "Light"
+                          : "System"
+                    }
+                    onChange={(v) => {
+                      if (v !== "Dark") {
+                        showToast(
+                          `${v} theme isn't available yet — coming soon.`,
+                        );
+                        return;
+                      }
+                      updatePreference("theme", "dark");
+                    }}
+                  />
+                </div>
+              </div>
             </SettingsRow>
             <SettingsRow
               iconSrc={setIconDlp}
